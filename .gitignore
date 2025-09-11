@@ -1,0 +1,78 @@
+# --- OS / �diteurs ---------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.lnk
+*~
+*.swp
+*.swo
+*.tmp
+*.bak
+
+# --- Eclipse / Atollic TrueSTUDIO ------------------------------------------
+# (Conserver .project et .cproject pour pouvoir importer le projet)
+.metadata/
+.settings/
+.externalToolBuilders/
+.recommenders/
+*.launch
+
+# Fichiers de langage/idx bruyants
+.settings/language.settings.xml
+.projectOptions  # selon versions
+
+# --- R�pertoires de build ---------------------------------------------------
+/Debug/
+/Release/
+/build/
+/out/
+/bin/
+/obj/
+/tmp/
+/.ipch/
+
+# --- Artefacts de compilation C/C++ -----------------------------------------
+*.o
+*.d
+*.a
+*.gch
+*.gcno
+*.gcda
+*.gcov
+
+# --- Sorties typiques STM32 (GCC/objcopy) ----------------------------------
+*.elf
+*.axf
+*.hex
+*.bin
+*.s19
+*.srec
+*.map
+*.lst
+*.list
+*.dis
+*.dasm
+*.su
+
+# --- Logs / traces outils ---------------------------------------------------
+*.log
+JLink*.log
+ST-LINK_GDB_server*.log
+
+# --- G�n�ration doc optionnelle (Doxygen) ----------------------------------
+/doc/html/
+/doc/latex/
+
+# --- Archives / livrables ---------------------------------------------------
+*.zip
+*.7z
+*.tar
+*.tar.gz
+
+# --- STM32CubeMX ------------------------------------------------------------
+# Garder le .ioc dans le d�p�t (source de v�rit� du projet)
+# *.ioc   <-- NE PAS ignorer (comment� volontairement)
+.mxproject            # pr�f�rence locale CubeMX
+
+
+**/Release_Notes*.html
+*.pdf
