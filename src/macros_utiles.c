@@ -1,0 +1,71 @@
+#include "macros_utiles.h"
+#include "stdint.h"
+
+uint32_t convertPinToBit(int pin){
+	switch(pin){
+	case 0:
+		return BIT0;
+	case 1:
+		return BIT1;
+	case 2:
+		return BIT2;
+	case 3:
+		return BIT3;
+	case 4:
+		return BIT4;
+	case 5:
+		return BIT5;
+	case 6:
+		return BIT6;
+	case 7:
+		return BIT7;
+	case 8:
+		return BIT8;
+	case 9:
+		return BIT9;
+	case 10:
+		return BIT10;
+	case 11:
+		return BIT11;
+	case 12:
+		return BIT12;
+	case 13:
+		return BIT13;
+	case 14:
+		return BIT14;
+	case 15:
+		return BIT15;
+	case 16:
+		return BIT16;
+	case 17:
+		return BIT17;
+	case 18:
+		return BIT18;
+	case 19:
+		return BIT19;
+	case 20:
+		return BIT20;
+	case 21:
+		return BIT21;
+	case 22:
+		return BIT22;
+	case 23:
+		return BIT23;
+	case 24:
+		return BIT24;
+	case 25:
+		return BIT25;
+	case 26:
+		return BIT26;
+	case 27:
+		return BIT27;
+	case 28:
+		return BIT28;
+	case 29:
+		return BIT29;
+	case 30:
+		return BIT30;
+	case 31:
+		return BIT31;
+	}
+}
