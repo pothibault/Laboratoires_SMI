@@ -29,8 +29,9 @@ SOFTWARE.
 
 /* Includes */
 #include "stm32f4xx.h"
-#include "gpio.h"
-#include "macros_utiles.h"
+#include "Includes/gpio.h"
+#include "Includes/macros_utiles.h"
+#include "Includes/delai.h"
 
 
 /* Private macro */
@@ -47,8 +48,10 @@ SOFTWARE.
 */
 
 
+
 int main(void)
 {
+#ifdef P1
 	GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
 	GPIO_initPin(GPIOG,14,GPIO_OUTPUT);
 	GPIO_initPin(GPIOA,0,GPIO_INPUT);
@@ -66,5 +69,59 @@ int main(void)
 			GPIO_writePin(GPIOG,14,1); // LED pin14 actif
         }
     }
+#endif
+
+#ifdef P2
+    GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
+	GPIO_initPin(GPIOG,14,GPIO_OUTPUT);
+	GPIO_initPin(GPIOA,0,GPIO_INPUT);
+
+	SystemCoreClockUpdate();
+	InitSysTick_1ms(SystemCoreClock);
+
+	timer_t t2hz;
+	timer_start(&t2hz);
+	uint8_t state = 0;
+	uint8_t prev_pressed = 0;
+
+	GPIO_writePin(GPIOG,13,0);
+	GPIO_writePin(GPIOG,14,1);
+
+	while (1) {
+
+		uint8_t pressed = (uint8_t)GPIO_readPin(GPIOA, 0);
+
+		if (!pressed) {
+
+			GPIO_writePin(GPIOG,13,0);
+			GPIO_writePin(GPIOG,14,1);
+			delay_ms_blocking(500);
+
+			GPIO_writePin(GPIOG,13,1);
+			GPIO_writePin(GPIOG,14,0);
+			delay_ms_blocking(500);
+
+			prev_pressed = 0;
+		} else {
+
+			if (!prev_pressed) {
+				timer_start(&t2hz);
+				prev_pressed = 1;
+			}
+
+			if (timer_expired(&t2hz, 250)) {
+				timer_start(&t2hz);
+
+				state ^= 1;
+
+				GPIO_writePin(GPIOG,13, state);
+				GPIO_writePin(GPIOG,14, !state);
+			}
+
+		}
+	}
+
+
+#endif
 }
 

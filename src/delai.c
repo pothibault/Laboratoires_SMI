@@ -29,10 +29,14 @@ uint32_t millis(void) {
 void delay_ms_blocking(uint32_t ms) {
 	uint32_t t0 = millis();
 
-	// __WFI() Dort en attendant une interruption
-	while ((uint32_t)(millis() - t0) < ms) {
-		__WFI();
+	while (1) {
+		if((millis() - t0) >= ms) break;
 	}
+
+	// __WFI() Dort en attendant une interruption
+	//while ((uint32_t)(millis() - t0) < ms) {
+		//__WFI();
+	//}
 }
 
 void timer_start(timer_t *t) {
@@ -50,11 +54,6 @@ bool timer_expired(timer_t *t, uint32_t delay_ms) {
 }
 
 
-/**
-  * @brief  This function handles SysTick Handler.
-  * @param  None
-  * @retval None
-  */
 void SysTick_Handler(void)
 {
 	compteur_ms++;
