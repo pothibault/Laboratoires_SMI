@@ -29,14 +29,10 @@ uint32_t millis(void) {
 void delay_ms_blocking(uint32_t ms) {
 	uint32_t t0 = millis();
 
-	while (1) {
-		if((millis() - t0) >= ms) break;
-	}
-
 	// __WFI() Dort en attendant une interruption
-	//while ((uint32_t)(millis() - t0) < ms) {
-		//__WFI();
-	//}
+	while ((uint32_t)(millis() - t0) < ms) {
+		__WFI();
+	}
 }
 
 void timer_start(timer_t *t) {
