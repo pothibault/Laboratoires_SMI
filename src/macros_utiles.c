@@ -68,4 +68,5 @@ uint32_t convertPinToBit(int pin){
 	case 31:
 		return BIT31;
 	}
+	return -1;
 }
