@@ -18,7 +18,6 @@ void InitSysTick_1ms(uint32_t clk_hz) {
 	SYST_RVR = reload;
 	SYST_CVR = 0;
 
-	//CLKSOURCE=1 (BIT2), TICKINT=1 (BIT1), ENABLE=1 (BIT0)
 	SYST_CSR = BIT2 | BIT1 | BIT0;   // 0x00000007
 }
 

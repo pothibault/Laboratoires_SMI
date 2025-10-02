@@ -32,6 +32,7 @@ SOFTWARE.
 #include "Includes/gpio.h"
 #include "Includes/macros_utiles.h"
 #include "Includes/delai.h"
+#include "Includes/adc.h"
 
 
 /* Private macro */
@@ -47,7 +48,7 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P2
+#define P3
 
 int main(void)
 {
@@ -120,6 +121,37 @@ int main(void)
 
 		}
 	}
+#endif
+
+#ifdef P3
+
+	GPIO_initPin(GPIOC,3,GPIO_ANALOG);
+	ADC_init(ADC1);
+	uint16_t value;
+
+	while (1){
+		value = ADC_getSample(ADC1);
+	}
+
+
+// Utiliser struct TIM_Typedef
+
+/*void configurerTimer(int32_t p_frequency){
+
+	const volatile int32_t periphFreq = SystemCoreClock/2;
+	const volatile int32_t prescaller = 1;
+
+	RCC-> APB1ENR |= BIT0; // Donne horloge TIm2
+
+	TIM2->ARR = (periphFreq/prescaller)/p_frequency;
+
+	TIM2->DIER |= BIT0; // Peripherique genere interruption
+	NVIC->ISER[0] |= BIT28;
+
+	TIM2->CR1 |= BIT0; //Active et demarre timer
+
+}
+*/
 
 
 #endif

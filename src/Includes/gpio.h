@@ -1,6 +1,6 @@
-#include "stm32f4xx.h" // Replace with your specific device header
+#include "stm32f4xx.h"
 
-// Enum for pin modes
+// Enum pour modes pins
 typedef enum {
     GPIO_INPUT = 0,
     GPIO_OUTPUT = 1,
