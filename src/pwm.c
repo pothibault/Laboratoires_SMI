@@ -8,7 +8,7 @@ void PWM_Init_PA5_TIM2(uint32_t timclk_hz, uint32_t frequency_hz, uint8_t duty_p
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 
 	GPIO_initPin(GPIOA, 0, GPIO_AF); //active pin en alternating function
-    GPIOA->AFR[0] &= ~(0xFU << (5*4));   //met Ã  0 les 4 bits [23:20] pour GPIOx_AFRL
+    GPIOA->AFR[0] &= ~(0xFU << (5*4));   //met a  0 les 4 bits [23:20] pour GPIOx_AFRL
     GPIOA->AFR[0] |=  (0x1U << (5*4));   // ecrit la valeur 0x1 dans [23:20]
     GPIOA->OTYPER &= ~(1U<<5);//Actif haut et bas, fort courant, fronts rapides. Mets pour pin 5 mode push-pull
     GPIOA->OSPEEDR |=  (2U<<(5*2)); //High speed
@@ -33,6 +33,40 @@ void PWM_Init_PA5_TIM2(uint32_t timclk_hz, uint32_t frequency_hz, uint8_t duty_p
     TIM2->PSC  = g_psc;
     TIM2->ARR  = g_arr;
     TIM2->CCR1 = ccr;
-    TIM2->EGR  = TIM_EGR_UG; //force un Update Event immÃ©diat
+    TIM2->EGR  = TIM_EGR_UG; //force un Update Event immediat
     TIM2->CR1 |= TIM_CR1_CEN;
 }
+
+void PWM_SetDuty(uint32_t timclk_hz, uint32_t freq_hz) {
+	uint32_t g_psc = (timclk_hz/1000000U) - 1U;
+	uint32_t g_arr = ( (timclk_hz/(g_psc+1U)) / frequency_hz ) - 1U;
+
+	uint32_t ccr = TIM2->CCR1;
+	uint32_t duty = (ccr+1U) * 100U / (TIM2->ARR+1U);
+	uint32_t new_ccr = ((uint64_t)(g_arr+1U) * duty)/100U;
+	if (new_ccr) new_ccr -= 1U;
+
+	TIM2->CR1 &= ~TIM_CR1_CEN;
+	TIM2->PSC  = g_psc;
+	TIM2->ARR  = g_arr;
+	TIM2->CCR1 = ccr;
+	TIM2->EGR  = TIM_EGR_UG; //force un Update Event immediat
+	TIM2->CR1 |= TIM_CR1_CEN;
+}
+
+void PWM_SetDuty(uint8_t duty_percent) {
+	if (duty_percent > 100U) duty_percent = 100U;
+
+	uint32_t arr = TIM2->ARR;  // période déjà en place
+	uint32_t ccr = ((uint64_t)(arr + 1U) * duty_percent) / 100U;
+
+	// éviter le dépassement si duty=100% (on borne à ARR)
+	if (ccr > arr) ccr = arr;
+
+	TIM2->CCR1 = ccr;
+
+	// Avec OC1PE actif, on force un Update pour appliquer immédiatement
+	TIM2->EGR = TIM_EGR_UG;
+}
+
+
