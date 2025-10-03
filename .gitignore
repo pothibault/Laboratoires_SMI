@@ -76,3 +76,4 @@ ST-LINK_GDB_server*.log
 
 **/Release_Notes*.html
 *.pdf
+*.vscode
