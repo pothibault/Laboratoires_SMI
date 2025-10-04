@@ -33,6 +33,7 @@ SOFTWARE.
 #include "Includes/macros_utiles.h"
 #include "Includes/delai.h"
 #include "Includes/adc.h"
+#include "Includes/pwm.h"
 
 
 /* Private macro */
@@ -48,112 +49,115 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P3
-
 int main(void)
 {
-#ifdef P1
-	GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
-	GPIO_initPin(GPIOG,14,GPIO_OUTPUT);
-	GPIO_initPin(GPIOA,0,GPIO_INPUT);
+	//MAIN DU LABO 1
+	// #ifdef P1
+	// 	GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
+	// 	GPIO_initPin(GPIOG,14,GPIO_OUTPUT);
+	// 	GPIO_initPin(GPIOA,0,GPIO_INPUT);
 
-    while (1)
-    {
-        if (GPIO_readPin(GPIOA,0))  // bouton enfonce
-        {
-        	GPIO_writePin(GPIOG,13,1); // LED pin13 actif
-			GPIO_writePin(GPIOG,14,0); // LED pin14 inactif
-        }
-        else
-        {
-        	GPIO_writePin(GPIOG,13,0); // LED pin13 inactif
-			GPIO_writePin(GPIOG,14,1); // LED pin14 actif
-        }
-    }
-#endif
+	//     while (1)
+	//     {
+	//         if (GPIO_readPin(GPIOA,0))  // bouton enfonce
+	//         {
+	//         	GPIO_writePin(GPIOG,13,1); // LED pin13 actif
+	// 			GPIO_writePin(GPIOG,14,0); // LED pin14 inactif
+	//         }
+	//         else
+	//         {
+	//         	GPIO_writePin(GPIOG,13,0); // LED pin13 inactif
+	// 			GPIO_writePin(GPIOG,14,1); // LED pin14 actif
+	//         }
+	//     }
+	// #endif
 
-#ifdef P2
-    GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
-	GPIO_initPin(GPIOG,14,GPIO_OUTPUT);
-	GPIO_initPin(GPIOA,0,GPIO_INPUT);
+	// #ifdef P2
+	//     GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
+	// 	GPIO_initPin(GPIOG,14,GPIO_OUTPUT);
+	// 	GPIO_initPin(GPIOA,0,GPIO_INPUT);
 
-	SystemCoreClockUpdate();
-	InitSysTick_1ms(SystemCoreClock);
+	// 	SystemCoreClockUpdate();
+	// 	InitSysTick_1ms(SystemCoreClock);
 
-	timer_t t2hz;
-	timer_start(&t2hz);
-	uint8_t state = 0;
-	uint8_t prev_pressed = 0;
+	// 	timer_t t2hz;
+	// 	timer_start(&t2hz);
+	// 	uint8_t state = 0;
+	// 	uint8_t prev_pressed = 0;
 
-	GPIO_writePin(GPIOG,13,0);
-	GPIO_writePin(GPIOG,14,1);
+	// 	GPIO_writePin(GPIOG,13,0);
+	// 	GPIO_writePin(GPIOG,14,1);
 
-	while (1) {
+	// 	while (1) {
 
-		uint8_t pressed = (uint8_t)GPIO_readPin(GPIOA, 0);
+	// 		uint8_t pressed = (uint8_t)GPIO_readPin(GPIOA, 0);
 
-		if (!pressed) {
+	// 		if (!pressed) {
 
-			GPIO_writePin(GPIOG,13,0);
-			GPIO_writePin(GPIOG,14,1);
-			delay_ms_blocking(500);
+	// 			GPIO_writePin(GPIOG,13,0);
+	// 			GPIO_writePin(GPIOG,14,1);
+	// 			delay_ms_blocking(500);
 
-			GPIO_writePin(GPIOG,13,1);
-			GPIO_writePin(GPIOG,14,0);
-			delay_ms_blocking(500);
+	// 			GPIO_writePin(GPIOG,13,1);
+	// 			GPIO_writePin(GPIOG,14,0);
+	// 			delay_ms_blocking(500);
 
-			prev_pressed = 0;
-		} else {
+	// 			prev_pressed = 0;
+	// 		} else {
 
-			if (!prev_pressed) {
-				timer_start(&t2hz);
-				prev_pressed = 1;
-			}
+	// 			if (!prev_pressed) {
+	// 				timer_start(&t2hz);
+	// 				prev_pressed = 1;
+	// 			}
 
-			if (timer_expired(&t2hz, 250)) {
-				timer_start(&t2hz);
+	// 			if (timer_expired(&t2hz, 250)) {
+	// 				timer_start(&t2hz);
 
-				state ^= 1;
+	// 				state ^= 1;
 
-				GPIO_writePin(GPIOG,13, state);
-				GPIO_writePin(GPIOG,14, !state);
-			}
+	// 				GPIO_writePin(GPIOG,13, state);
+	// 				GPIO_writePin(GPIOG,14, !state);
+	// 			}
 
+	// 		}
+	// 	}
+	// #endif
+
+	#ifdef P1
+
+		GPIO_initPin(GPIOC,3,GPIO_ANALOG);
+		ADC_init(ADC1);
+		uint16_t value;
+
+		while (1){
+			value = ADC_getSample(ADC1);
 		}
+
+
+	// Utiliser struct TIM_Typedef
+
+	/*void configurerTimer(int32_t p_frequency){
+
+		const volatile int32_t periphFreq = SystemCoreClock/2;
+		const volatile int32_t prescaller = 1;
+
+		RCC-> APB1ENR |= BIT0; // Donne horloge TIm2
+
+		TIM2->ARR = (periphFreq/prescaller)/p_frequency;
+
+		TIM2->DIER |= BIT0; // Peripherique genere interruption
+		NVIC->ISER[0] |= BIT28;
+
+		TIM2->CR1 |= BIT0; //Active et demarre timer
+
 	}
-#endif
+	*/
+	#endif
 
-#ifdef P3
-
-	GPIO_initPin(GPIOC,3,GPIO_ANALOG);
-	ADC_init(ADC1);
-	uint16_t value;
-
-	while (1){
-		value = ADC_getSample(ADC1);
-	}
-
-
-// Utiliser struct TIM_Typedef
-
-/*void configurerTimer(int32_t p_frequency){
-
-	const volatile int32_t periphFreq = SystemCoreClock/2;
-	const volatile int32_t prescaller = 1;
-
-	RCC-> APB1ENR |= BIT0; // Donne horloge TIm2
-
-	TIM2->ARR = (periphFreq/prescaller)/p_frequency;
-
-	TIM2->DIER |= BIT0; // Peripherique genere interruption
-	NVIC->ISER[0] |= BIT28;
-
-	TIM2->CR1 |= BIT0; //Active et demarre timer
-
-}
-*/
-
-
-#endif
+	#ifdef P2
+		SystemCoreClockUpdate();
+		uint32_t clock = SystemCoreClock/2; //Clock pour APB1 selectionner
+		PWM_Init_PA5_TIM2(clock, 100, 25);
+	#endif
 }
 
