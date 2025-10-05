@@ -49,6 +49,8 @@ SOFTWARE.
 **===========================================================================
 */
 
+#define P1
+
 int main(void)
 {
 	//MAIN DU LABO 1
@@ -127,31 +129,15 @@ int main(void)
 
 		GPIO_initPin(GPIOC,3,GPIO_ANALOG);
 		ADC_init(ADC1);
-		uint16_t value;
 
-		while (1){
-			value = ADC_getSample(ADC1);
-		}
-
-
-	// Utiliser struct TIM_Typedef
-
-	/*void configurerTimer(int32_t p_frequency){
-
-		const volatile int32_t periphFreq = SystemCoreClock/2;
-		const volatile int32_t prescaller = 1;
-
-		RCC-> APB1ENR |= BIT0; // Donne horloge TIm2
-
-		TIM2->ARR = (periphFreq/prescaller)/p_frequency;
-
-		TIM2->DIER |= BIT0; // Peripherique genere interruption
-		NVIC->ISER[0] |= BIT28;
-
-		TIM2->CR1 |= BIT0; //Active et demarre timer
-
-	}
-	*/
+		while (1) {
+			ADC_startConversion(ADC1);
+			delay_ms_blocking(100);
+			if (adc_ready) {
+				adc_ready = 0;
+				uint16_t val = adc_value;
+		        }
+		    }
 	#endif
 
 	#ifdef P2

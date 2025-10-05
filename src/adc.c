@@ -4,14 +4,20 @@
 
 void ADC_init(ADC_TypeDef *adc){
 
-	RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;   // Enable ADC1 clock
-/*
-	adc->CR2 |= BIT30; // SWSTART pour regular channel
-	adc->CR1 |= BIT5;  // EOCIE enable pour interruption
-	adc->SQR3 |= (BIT0 | BIT2 | BIT3); // Sequence de conversion, IN 13, une seule conversion
-	NVIC->ISER[0] |= BIT18;	// Interruptions provenant de l'ADC, bit18 dans ISER 0
-*/
-	adc->CR2 = 0;                         // Ensure reset state
+	// Start le clock
+	switch(adc){
+	case ADC1:
+		RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+	case ADC2:
+		RCC->APB2ENR |= RCC_APB2ENR_ADC2EN;
+	case ADC3:
+		RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;
+	}
+
+
+	adc->CR1 |= ADC_CR1_EOCIE;  // EOCIE enable pour interruption
+	NVIC->ISER[0] |= (1 << 18); // ADC_IRQn = 18
+	adc->CR2 = 0;                         // Etat reset
 	adc->CR2 |= ADC_CR2_ADON;             // On active l'ADC, regular channel
 
 	adc->SQR1 = 0;                        // Une conversion seulement
@@ -28,5 +34,11 @@ uint16_t ADC_getSample(ADC_TypeDef *adc){
 		ADC_startConversion(adc);
 	    while (!(adc->SR & ADC_SR_EOC));         // Attente fin de la conversion
 	    return (uint16_t)adc->DR;                // Lecture resultat 12 bit
-
 }
+void ADC_IRQHandler(ADC_TypeDef *adc){
+    if (ADC1->SR & ADC_SR_EOC) {
+        adc_value = ADC1->DR;
+        adc_ready = 1;
+    }
+}
+
