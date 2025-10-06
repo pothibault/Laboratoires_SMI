@@ -38,8 +38,6 @@ void GPIO_initPin(GPIO_TypeDef* port, uint8_t pin, GPIONode_t mode) {
     	port->MODER |= convertPinToBit(bit2);
     }
 
-
-
 }
 
 int GPIO_readPin(GPIO_TypeDef* port, uint8_t pin){

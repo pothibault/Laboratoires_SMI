@@ -139,6 +139,20 @@ int main(void)
 				uint16_t val = adc_value;
 		        }
 		    }
+
+
+		GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
+		uint8_t state = 0;
+
+		while (1) {
+			ADC_startConversion(ADC1);
+			delay_ms_blocking(100);
+			if (ADC_isReady()) {
+				uint16_t val = ADC_readValue();
+				state ^= 1;
+				GPIO_writePin(GPIOG,13, state);
+		        }
+		    }
 	#endif
 
 	#ifdef P2

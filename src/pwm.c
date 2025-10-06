@@ -14,8 +14,7 @@ void PWM_Init_PA5_TIM2(uint32_t timclk_hz, uint32_t frequency_hz, uint8_t duty_p
     GPIOA->OSPEEDR |=  (2U<<(5*2)); //High speed
     GPIOA->PUPDR   &= ~(3U<<(5*2)); //No pull-up, pull-down
 
-    uint32_t g_psc = (timclk_hz/1000000U) - 1U;          //determine le prescaler a avoir pour obtenir une frequence de comptage de 1Mhz
-
+    uint32_t g_psc = (timclk_hz/1000000U) - 1U;  //determine le prescaler a avoir pour obtenir une frequence de comptage de 1Mhz
     
     uint32_t g_arr = ( (timclk_hz/(g_psc+1U)) / frequency_hz ) - 1U; //fixe la periode
     uint32_t ccr = ((uint64_t)(g_arr+1U) * duty_percent)/100U; //fixe le nombre pour obtenir le duty cycle demander dans la periode de comptage
@@ -49,7 +48,7 @@ void PWM_SetFrequency(uint32_t timclk_hz, uint32_t freq_hz) {
 	TIM2->CR1 &= ~TIM_CR1_CEN;
 	TIM2->PSC  = g_psc;
 	TIM2->ARR  = g_arr;
-	TIM2->CCR1 = ccr;
+	TIM2->CCR1 = new_ccr;
 	TIM2->EGR  = TIM_EGR_UG; //force un Update Event immediat
 	TIM2->CR1 |= TIM_CR1_CEN;
 }
@@ -57,15 +56,13 @@ void PWM_SetFrequency(uint32_t timclk_hz, uint32_t freq_hz) {
 void PWM_SetDuty(uint8_t duty_percent) {
 	if (duty_percent > 100U) duty_percent = 100U;
 
-	uint32_t arr = TIM2->ARR;  // p�riode d�j� en place
+	uint32_t arr = TIM2->ARR;  
 	uint32_t ccr = ((uint64_t)(arr + 1U) * duty_percent) / 100U;
 
-	// �viter le d�passement si duty=100% (on borne � ARR)
 	if (ccr > arr) ccr = arr;
 
 	TIM2->CCR1 = ccr;
 
-	// Avec OC1PE actif, on force un Update pour appliquer imm�diatement
 	TIM2->EGR = TIM_EGR_UG;
 }
 

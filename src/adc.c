@@ -2,8 +2,8 @@
 #include "Includes/macros_utiles.h"
 #include "stdint.h"
 
-volatile uint16_t adc_value = 0;
-volatile uint8_t adc_ready = 0;
+static volatile uint16_t adc_value = 0;
+static volatile uint8_t adc_ready = 0;
 
 void ADC_init(ADC_TypeDef *adc){
 
@@ -34,12 +34,21 @@ void ADC_startConversion(ADC_TypeDef *adc){
 uint16_t ADC_getSample(ADC_TypeDef *adc){
 		ADC_startConversion(adc);
 	    while (!(adc->SR & ADC_SR_EOC));         // Attente fin de la conversion
-	    return (uint16_t)adc->DR;                // Lecture resultat 12 bit
+	    return (uint16_t)adc->DR;                // Lecture resultat 12 bit (maximum du stm)
 }
+
 void ADC_IRQHandler(ADC_TypeDef *adc){
     if (ADC1->SR & ADC_SR_EOC) {
         adc_value = ADC1->DR;
         adc_ready = 1;
     }
+}
+
+uint8_t ADC_isReady(void) {
+	return adc_ready;
+}
+uint16_t ADC_readValue(void) {
+	adc_ready = 0;
+	return adc_value;
 }
 
