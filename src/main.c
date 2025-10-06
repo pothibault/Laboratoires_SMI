@@ -130,7 +130,11 @@ int main(void)
 
 		GPIO_initPin(GPIOC,3,GPIO_ANALOG);
 		ADC_init(ADC1);
-
+		SystemCoreClockUpdate();
+		InitSysTick_1ms(SystemCoreClock);
+		timer_t t2hz;
+		timer_start(&t2hz);
+/*
 		while (1) {
 			ADC_startConversion(ADC1);
 			delay_ms_blocking(100);
@@ -139,7 +143,7 @@ int main(void)
 				uint16_t val = adc_value;
 		        }
 		    }
-
+*/
 
 		GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
 		uint8_t state = 0;
@@ -158,7 +162,10 @@ int main(void)
 	#ifdef P2
 		SystemCoreClockUpdate();
 		uint32_t clock = SystemCoreClock/2; //Clock pour APB1 selectionner
-		PWM_Init_PA5_TIM2(clock, 100, 25);
+		PWM_Init_PA5_TIM2(clock, 1000, 88);
+		while(1){
+
+		}
 	#endif
 
 

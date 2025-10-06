@@ -30,7 +30,7 @@ void delay_ms_blocking(uint32_t ms) {
 
 	// __WFI() Dort en attendant une interruption
 	while ((uint32_t)(millis() - t0) < ms) {
-		__WFI();
+		//__WFI();
 	}
 }
 

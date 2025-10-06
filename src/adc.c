@@ -16,8 +16,8 @@ void ADC_init(ADC_TypeDef *adc){
 		RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;
 	}
 
-	adc->CR1 |= ADC_CR1_EOCIE;  // EOCIE enable pour interruption
-	NVIC->ISER[0] |= (1 << 18); // ADC_IRQn = 18
+	//adc->CR1 |= ADC_CR1_EOCIE;  // EOCIE enable pour interruption
+	//NVIC->ISER[0] |= (1 << 18); // ADC_IRQn = 18
 	adc->CR2 = 0;                         // Etat reset
 	adc->CR2 |= ADC_CR2_ADON;             // On active l'ADC, regular channel
 
