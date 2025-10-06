@@ -14,8 +14,9 @@ void controleurled_init(GPIO_TypeDef* portButton, uint8_t pinButton,
 	ADC_init(adc);
 	SystemCoreClockUpdate();
 	uint32_t clock = SystemCoreClock/2;
-	PWM_Init_PA5_TIM2(clock, 1000, 88);
+	PWM_Init_PA5_TIM2(clock, 100, 0);
 }
+
 void controleurled_turnOnOffLed(LED_state state, ADC_TypeDef *adc){
 	switch(state){
 	case ON:
@@ -29,16 +30,15 @@ void controleurled_turnOnOffLed(LED_state state, ADC_TypeDef *adc){
 	}
 
 }
+
 void controleurled_adjustIntensity(ADC_TypeDef *adc){
-	uint16_t sample = ADC_getSample(adc);
-	if (sample <= 0){
-		PWM_SetDuty(0);
-		return;
-	}
-	uint8_t intensity = (sample * 100) / 4095;
-	PWM_SetDuty(intensity);
-	return;
+    ADC_startConversion(adc);
+    while(!ADC_isReady()) {}
+    uint16_t sample = ADC_readValue();
+    uint8_t intensity = (uint8_t)(((uint32_t)sample * 100U) / 4095U);
+    PWM_SetDuty(intensity);
 }
+
 uint8_t controleurled_buttonPressed(GPIO_TypeDef* port, uint8_t pin){
 	return GPIO_readPin(port,pin);
 }

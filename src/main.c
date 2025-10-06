@@ -54,6 +54,62 @@ SOFTWARE.
 
 int main(void)
 {
+	#ifdef P1
+
+		GPIO_initPin(GPIOC,3,GPIO_ANALOG);
+		ADC_init(ADC1);
+		SystemCoreClockUpdate();
+		InitSysTick_1ms(SystemCoreClock);
+		timer_t t2hz;
+		timer_start(&t2hz);
+
+		GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
+		uint8_t state = 0;
+
+		while (1) {
+			ADC_startConversion(ADC1);
+			delay_ms_blocking(100);
+			if (ADC_isReady()) {
+				uint16_t val = ADC_readValue();
+				state ^= 1;
+				GPIO_writePin(GPIOG,13, state);
+		        }
+		    }
+	#endif
+
+	#ifdef P2
+		SystemCoreClockUpdate();
+		uint32_t clock = SystemCoreClock/2; //Clock pour APB1 selectionner
+		// PWM_Init_PA5_TIM2(clock, 100, 25);
+		// PWM_Init_PA5_TIM2(clock, 400, 63);
+		PWM_Init_PA5_TIM2(clock, 1000, 88);
+		while(1){}
+	#endif
+
+
+	#ifdef P3
+		controleurled_init(GPIOA,0,GPIOC,3,ADC1);
+		SystemCoreClockUpdate();
+		InitSysTick_1ms(SystemCoreClock);
+
+		timer_t t;
+		timer_start(&t);
+
+		while (1) {
+			if (controleurled_buttonPressed(GPIOA,0)) {
+				if (timer_expired(&t, 20)) {
+					timer_start(&t);
+					controleurled_turnOnOffLed(ON, ADC1);
+				}
+			} else {
+				if (timer_expired(&t, 20)) {
+					timer_start(&t);
+					controleurled_turnOnOffLed(OFF, ADC1);
+				}
+			}
+		}
+	#endif
+
 	//MAIN DU LABO 1
 	// #ifdef P1
 	// 	GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
@@ -125,55 +181,5 @@ int main(void)
 	// 		}
 	// 	}
 	// #endif
-
-	#ifdef P1
-
-		GPIO_initPin(GPIOC,3,GPIO_ANALOG);
-		ADC_init(ADC1);
-		SystemCoreClockUpdate();
-		InitSysTick_1ms(SystemCoreClock);
-		timer_t t2hz;
-		timer_start(&t2hz);
-/*
-		while (1) {
-			ADC_startConversion(ADC1);
-			delay_ms_blocking(100);
-			if (adc_ready) {
-				adc_ready = 0;
-				uint16_t val = adc_value;
-		        }
-		    }
-*/
-
-		GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
-		uint8_t state = 0;
-
-		while (1) {
-			ADC_startConversion(ADC1);
-			delay_ms_blocking(100);
-			if (ADC_isReady()) {
-				uint16_t val = ADC_readValue();
-				state ^= 1;
-				GPIO_writePin(GPIOG,13, state);
-		        }
-		    }
-	#endif
-
-	#ifdef P2
-		SystemCoreClockUpdate();
-		uint32_t clock = SystemCoreClock/2; //Clock pour APB1 selectionner
-		PWM_Init_PA5_TIM2(clock, 1000, 88);
-		while(1){
-
-		}
-	#endif
-
-
-	#ifdef P3
-		controleurled_init(GPIOA,0,GPIOC,3,ADC1);
-		while (1) {
-			controleurled_buttonPressed(GPIOA,0)? controleurled_turnOnOffLed(ON, ADC1) : controleurled_turnOnOffLed(OFF, ADC1);
-		    }
-	#endif
 }
 

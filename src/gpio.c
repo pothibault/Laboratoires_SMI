@@ -33,16 +33,19 @@ void GPIO_initPin(GPIO_TypeDef* port, uint8_t pin, GPIONode_t mode) {
     if (mode == GPIO_OUTPUT){ //0:1
         port->MODER |= convertPinToBit(bit1);
     } else if (mode == GPIO_ANALOG){ //1:1
+        port->PUPDR &= ~(3U << (pin*2));
     	port->MODER |= (convertPinToBit(bit1) | convertPinToBit(bit2));
     } else if (mode == GPIO_AF){ //1:0
     	port->MODER |= convertPinToBit(bit2);
+    } else if (mode == GPIO_INPUT) {
+        port->PUPDR &= ~(3U << (pin*2));
+        port->PUPDR |=  (2U << (pin*2));
     }
 
 }
 
 int GPIO_readPin(GPIO_TypeDef* port, uint8_t pin){
-	pressed = (port->IDR & convertPinToBit(pin));
-	return (port->IDR & convertPinToBit(pin));
+	return ( (port->IDR & convertPinToBit(pin)) ? 1 : 0 );
 }
 
 void GPIO_writePin(GPIO_TypeDef* port, uint8_t pin, uint8_t bit) {

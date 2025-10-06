@@ -16,11 +16,11 @@ void ADC_init(ADC_TypeDef *adc){
 		RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;
 	}
 
-	//adc->CR1 |= ADC_CR1_EOCIE;  // EOCIE enable pour interruption
-	//NVIC->ISER[0] |= (1 << 18); // ADC_IRQn = 18
+	adc->CR1 |= ADC_CR1_EOCIE;  // EOCIE enable pour interruption
+	NVIC->ISER[0] |= (1 << 18); // ADC_IRQn = 18
 	adc->CR2 = 0;                         // Etat reset
 	adc->CR2 |= ADC_CR2_ADON;             // On active l'ADC, regular channel
-
+	adc->CR2 |= ADC_CR2_EOCS;
 	adc->SQR1 = 0;                        // Une conversion seulement
 	adc->SQR3 = 13;                       // Channel 13 = PC3
 	adc->SMPR1 |= ADC_SMPR1_SMP13_1;      // Sample time, ici 55.5 cycles
@@ -37,7 +37,7 @@ uint16_t ADC_getSample(ADC_TypeDef *adc){
 	    return (uint16_t)adc->DR;                // Lecture resultat 12 bit (maximum du stm)
 }
 
-void ADC_IRQHandler(ADC_TypeDef *adc){
+void ADC_IRQHandler(void){
     if (ADC1->SR & ADC_SR_EOC) {
         adc_value = ADC1->DR;
         adc_ready = 1;
