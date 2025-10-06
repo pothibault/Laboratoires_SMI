@@ -34,6 +34,7 @@ SOFTWARE.
 #include "Includes/delai.h"
 #include "Includes/adc.h"
 #include "Includes/pwm.h"
+#include "Includes/controleurled.h"
 
 
 /* Private macro */
@@ -49,7 +50,7 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P1
+#define P3
 
 int main(void)
 {
@@ -144,6 +145,14 @@ int main(void)
 		SystemCoreClockUpdate();
 		uint32_t clock = SystemCoreClock/2; //Clock pour APB1 selectionner
 		PWM_Init_PA5_TIM2(clock, 100, 25);
+	#endif
+
+
+	#ifdef P3
+		controleurled_init(GPIOA,0,GPIOC,3,ADC1);
+		while (1) {
+			controleurled_buttonPressed(GPIOA,0)? controleurled_turnOnOffLed(ON, ADC1) : controleurled_turnOnOffLed(OFF, ADC1);
+		    }
 	#endif
 }
 

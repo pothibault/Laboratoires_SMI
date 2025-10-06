@@ -43,6 +43,7 @@ void GPIO_initPin(GPIO_TypeDef* port, uint8_t pin, GPIONode_t mode) {
 }
 
 int GPIO_readPin(GPIO_TypeDef* port, uint8_t pin){
+	pressed = (port->IDR & convertPinToBit(pin));
 	return (port->IDR & convertPinToBit(pin));
 }
 

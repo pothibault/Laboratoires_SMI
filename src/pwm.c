@@ -39,7 +39,7 @@ void PWM_Init_PA5_TIM2(uint32_t timclk_hz, uint32_t frequency_hz, uint8_t duty_p
 
 void PWM_SetFrequency(uint32_t timclk_hz, uint32_t freq_hz) {
 	uint32_t g_psc = (timclk_hz/1000000U) - 1U;
-	uint32_t g_arr = ( (timclk_hz/(g_psc+1U)) / frequency_hz ) - 1U;
+	uint32_t g_arr = ( (timclk_hz/(g_psc+1U)) / freq_hz ) - 1U;
 
 	uint32_t ccr = TIM2->CCR1;
 	uint32_t duty = (ccr+1U) * 100U / (TIM2->ARR+1U);

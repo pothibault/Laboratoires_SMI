@@ -2,18 +2,19 @@
 #include "Includes/macros_utiles.h"
 #include "stdint.h"
 
+volatile uint16_t adc_value = 0;
+volatile uint8_t adc_ready = 0;
+
 void ADC_init(ADC_TypeDef *adc){
 
 	// Start le clock
-	switch(adc){
-	case ADC1:
+	if(adc == ADC1){
 		RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
-	case ADC2:
+	} else if (adc == ADC2){
 		RCC->APB2ENR |= RCC_APB2ENR_ADC2EN;
-	case ADC3:
+	} else if (adc == ADC3){
 		RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;
 	}
-
 
 	adc->CR1 |= ADC_CR1_EOCIE;  // EOCIE enable pour interruption
 	NVIC->ISER[0] |= (1 << 18); // ADC_IRQn = 18
