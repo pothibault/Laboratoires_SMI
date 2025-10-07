@@ -14,7 +14,7 @@ void controleurled_init(GPIO_TypeDef* portButton, uint8_t pinButton,
 	ADC_init(adc);
 	SystemCoreClockUpdate();
 	uint32_t clock = SystemCoreClock/2;
-	PWM_Init_PA5_TIM2(clock, 100, 0);
+	PWM_Init(clock, 100, 0);
 }
 
 void controleurled_turnOnOffLed(LED_state state, ADC_TypeDef *adc){

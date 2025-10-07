@@ -3,7 +3,7 @@
 #include "stdint.h"
 
 
-void PWM_Init_PA5_TIM2(uint32_t timclk_hz, uint32_t frequency_hz, uint8_t duty_percent) {
+void PWM_Init(uint32_t timclk_hz, uint32_t frequency_hz, uint8_t duty_percent) {
 
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; //active TIM2
 
@@ -32,7 +32,7 @@ void PWM_Init_PA5_TIM2(uint32_t timclk_hz, uint32_t frequency_hz, uint8_t duty_p
     TIM2->PSC  = g_psc;
     TIM2->ARR  = g_arr;
     TIM2->CCR1 = ccr;
-    TIM2->EGR  = TIM_EGR_UG; //force un Update Event immediat
+    TIM2->EGR  = TIM_EGR_UG; //force un update event immediat
     TIM2->CR1 |= TIM_CR1_CEN;
 }
 
@@ -49,7 +49,7 @@ void PWM_SetFrequency(uint32_t timclk_hz, uint32_t freq_hz) {
 	TIM2->PSC  = g_psc;
 	TIM2->ARR  = g_arr;
 	TIM2->CCR1 = new_ccr;
-	TIM2->EGR  = TIM_EGR_UG; //force un Update Event immediat
+	TIM2->EGR  = TIM_EGR_UG;
 	TIM2->CR1 |= TIM_CR1_CEN;
 }
 

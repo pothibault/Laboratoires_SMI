@@ -80,9 +80,9 @@ int main(void)
 	#ifdef P2
 		SystemCoreClockUpdate();
 		uint32_t clock = SystemCoreClock/2; //Clock pour APB1 selectionner
-		// PWM_Init_PA5_TIM2(clock, 100, 25);
-		// PWM_Init_PA5_TIM2(clock, 400, 63);
-		PWM_Init_PA5_TIM2(clock, 1000, 88);
+		// PWM_Init(clock, 100, 25);
+		// PWM_Init(clock, 400, 63);
+		PWM_Init(clock, 1000, 88);
 		while(1){}
 	#endif
 
