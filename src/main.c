@@ -65,15 +65,17 @@ int main(void)
 	//MAIN DU LABO 3
 	#ifdef P1
     SystemInit();
+	SystemCoreClockUpdate();
+	InitSysTick_1ms(SystemCoreClock);
 
-    UART5_init(42000000, 115200);
+    UART5_init(18000000, 115200);
 
     const char *msg = "Hello World!\r\n";
     uint8_t c;
 
     while (1) {
-        UART5_sendString(msg);
-        delay_ms_blocking(1000);
+        //UART5_sendString(msg);
+       // delay_ms_blocking(1000);
 
         // Echo: tout ce qu'on reçoit, on le renvoie
         while (UART5_getc_nonblocking(&c)) {

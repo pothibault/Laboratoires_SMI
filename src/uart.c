@@ -1,7 +1,7 @@
 #include "Includes/gpio.h"
 #include "Includes/macros_utiles.h"
 #include "stm32f4xx.h"
-#include "uart.h"
+#include "Includes/uart.h"
 
 #define UART5_RX_BUF_SIZE 128
 
@@ -34,36 +34,45 @@ static uint32_t compute_brr(uint32_t clk, uint32_t baud) {
     return (mant << 4) | (frac & 0xF);
 }
 
-void UART5_init(uint32_t apb1_clk_hz, uint32_t baud)
+#include "stm32f4xx.h"
+#include <stdint.h>
+
+void UART5_init(uint32_t pclk1, uint32_t baudrate)
 {
-    /* 1. Configurer GPIO : PC12 = TX, PD2 = RX */
-    GPIO_configAF(GPIOC, 12, 8, GPIO_OT_PP, GPIO_SPEED_VHIGH, GPIO_PUPD_NONE);
-    GPIO_configAF(GPIOD,  2, 8, GPIO_OT_PP, GPIO_SPEED_VHIGH, GPIO_PUPD_NONE);
+    // 1. Enable UART5 clock
+    RCC->APB1ENR |= RCC_APB1ENR_UART5EN;
 
-    /* 2. Activer horloge UART5 */
-    RCC->APB1ENR |= BIT20;  // UART5EN
+    // 2. Configure TX (PC12) and RX (PD2) using GPIO functions
+    GPIO_configAF(GPIOC, 12, 8, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_NONE); // TX
+    GPIO_configAF(GPIOD, 2,  8, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_PU);   // RX with pull-up
 
-    /* 3. Configurer UART5 */
-    UART5->CR1 &= ~USART_CR1_UE;      // Disable UART pendant config
-    UART5->CR2 &= ~USART_CR2_STOP;    // 1 stop bit
-    UART5->CR1 &= ~(USART_CR1_M | USART_CR1_PCE | USART_CR1_PS |
-                    USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE);
-    UART5->CR1 |= (USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE); // 8 bits, no parity
-    UART5->BRR = compute_brr(apb1_clk_hz, baud);
-    UART5->CR1 |= USART_CR1_UE;       // Enable UART
+    // 3. Disable UART before configuration
+    UART5->CR1 &= ~USART_CR1_UE;
 
+    // 4. Set baud rate
+    UART5->BRR = compute_brr(pclk1, baudrate);
+
+    // 5. Configure frame: 8-bit data, 1 stop, no parity, enable RX/TX, enable RX interrupt
+    UART5->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE;
+
+    // 6. Enable UART
+    UART5->CR1 |= USART_CR1_UE;
+
+    // 7. Enable NVIC interrupt
+    NVIC_SetPriority(UART5_IRQn, 1);
     NVIC_EnableIRQ(UART5_IRQn);
-    NVIC_SetPriority(UART5_IRQn, 5);
 }
 
-/* --- Écriture bloquante --- */
+
+
+/* --- Ã‰criture bloquante --- */
 void UART5_putc(uint8_t c)
 {
     while (!(UART5->SR & USART_SR_TXE));
     UART5->DR = c;
 }
 
-/* --- Envoi de chaîne --- */
+/* --- Envoi de chaÃ®ne --- */
 void UART5_sendString(const char *s)
 {
     while (*s) UART5_putc((uint8_t)*s++);
@@ -75,7 +84,7 @@ int UART5_getc_nonblocking(uint8_t *c)
     return rx_pop(c);
 }
 
-/* --- Handler d’interruption --- */
+/* --- Handler dâ€™interruption --- */
 void UART5_IRQHandler(void)
 {
     if (UART5->SR & USART_SR_RXNE) {
