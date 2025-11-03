@@ -37,6 +37,7 @@ SOFTWARE.
 #include "Includes/controleurled.h"
 #include "Includes/lcd_driver.h"
 #include "Includes/spi.h"
+#include "Includes/uart.h"
 
 
 
@@ -53,15 +54,33 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P3
+#define P1
 #define RGB565_RED   0xF800
 #define RGB565_GRN   0x07E0
 #define RGB565_BLU   0x001F
 
 int main(void)
 {
+	//MAIN DU LABO 3
+	#ifdef P1
+    SystemInit();
 
-	//MAIN DU LABO 2
+    UART5_init(42000000, 115200);
+
+    const char *msg = "Hello World!\r\n";
+    uint8_t c;
+
+    while (1) {
+        UART5_sendString(msg);
+        delay_ms(1000);
+
+        // Echo: tout ce qu'on reçoit, on le renvoie
+        while (UART5_getc_nonblocking(&c)) {
+            UART5_putc(c);
+        }
+    }
+	#endif
+
 	#ifdef P2
 	SystemCoreClockUpdate();
 	InitSysTick_1ms(SystemCoreClock);
