@@ -38,6 +38,7 @@ SOFTWARE.
 #include "Includes/lcd_driver.h"
 #include "Includes/spi.h"
 #include "Includes/uart.h"
+#include "Includes/affichage.h"
 
 
 
@@ -72,7 +73,7 @@ int main(void)
 
     while (1) {
         UART5_sendString(msg);
-        delay_ms(1000);
+        delay_ms_blocking(1000);
 
         // Echo: tout ce qu'on reçoit, on le renvoie
         while (UART5_getc_nonblocking(&c)) {
@@ -101,6 +102,27 @@ int main(void)
 		LCD_TransmitFrameBuffer();
 		delay_ms_blocking(1000);
 	}
+	#endif
+
+	#ifdef P3
+
+
+	int main(void)
+	{
+		UART_Init();
+		Affichage_Init();
+
+		while (1)
+		{
+			Affichage_Update();  // lit la FIFO et affiche les caractères
+		}
+	}
+
+	void USART2_IRQHandler(void)
+	{
+		Affichage_UART_IRQHandler(); // redirige vers la FIFO d’affichage
+	}
+
 	#endif
 
 
