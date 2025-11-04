@@ -13,4 +13,4 @@
 void Affichage_Init(void);
 void Affichage_Update(void);
 
-#endif /* AFFICHAGE_H_ */
+#endif 

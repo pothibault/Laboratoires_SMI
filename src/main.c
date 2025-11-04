@@ -55,7 +55,7 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P2
+#define P1
 #define RGB565_RED   0xF800
 #define RGB565_GRN   0x07E0
 #define RGB565_BLU   0x001F
@@ -74,10 +74,9 @@ int main(void)
     uint8_t c;
 
     while (1) {
-        //UART5_sendString(msg);
-       // delay_ms_blocking(1000);
+        UART5_sendString(msg);
+       	delay_ms_blocking(1000);
 
-        // Echo: tout ce qu'on reçoit, on le renvoie
         while (UART5_getc_nonblocking(&c)) {
             UART5_putc(c);
         }
@@ -117,7 +116,7 @@ int main(void)
 
 	while (1)
 	{
-		Affichage_Update();  // lit la FIFO et affiche les caractères
+		Affichage_Update();
 	}
 	
 

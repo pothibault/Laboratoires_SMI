@@ -252,6 +252,7 @@ void LCD_WriteChar(uint8_t character, uint16_t backGroundColor, uint16_t charCol
 	LCD_WRX_HIGH();
 	LCD_CS_LOW();
 	SPI_Transmit(char_buff, CHAR_WIDTH_16*CHAR_HEIGHT_16*2);
+	LCD_CS_HIGH();
 }
 
 
