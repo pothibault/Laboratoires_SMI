@@ -12,6 +12,5 @@
 
 void Affichage_Init(void);
 void Affichage_Update(void);
-void Affichage_UART_IRQHandler(void); // à appeler depuis ton IRQ USARTx_IRQHandler
 
 #endif /* AFFICHAGE_H_ */

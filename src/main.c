@@ -55,7 +55,7 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P1
+#define P2
 #define RGB565_RED   0xF800
 #define RGB565_GRN   0x07E0
 #define RGB565_BLU   0x001F
@@ -107,23 +107,21 @@ int main(void)
 	#endif
 
 	#ifdef P3
+	SystemInit();
+	SystemCoreClockUpdate();
+	InitSysTick_1ms(SystemCoreClock);
 
+	UART5_init(18000000, 115200);
 
-	int main(void)
+	Affichage_Init();
+
+	while (1)
 	{
-		UART_Init();
-		Affichage_Init();
-
-		while (1)
-		{
-			Affichage_Update();  // lit la FIFO et affiche les caractères
-		}
+		Affichage_Update();  // lit la FIFO et affiche les caractères
 	}
+	
 
-	void USART2_IRQHandler(void)
-	{
-		Affichage_UART_IRQHandler(); // redirige vers la FIFO d’affichage
-	}
+	
 
 	#endif
 

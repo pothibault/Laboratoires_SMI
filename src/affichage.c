@@ -6,31 +6,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-// ---------------------- FIFO interne -----------------------
-#define UART_RX_FIFO_SIZE 128
-static volatile uint8_t uart_rx_fifo[UART_RX_FIFO_SIZE];
-static volatile uint16_t fifo_head = 0;
-static volatile uint16_t fifo_tail = 0;
-
-static int fifo_is_empty(void) { return fifo_head == fifo_tail; }
-static int fifo_is_full(void) { return ((fifo_head + 1) % UART_RX_FIFO_SIZE) == fifo_tail; }
-
-static void fifo_push(uint8_t data) {
-    if (!fifo_is_full()) {
-        uart_rx_fifo[fifo_head] = data;
-        fifo_head = (fifo_head + 1) % UART_RX_FIFO_SIZE;
-    }
-}
-
-static uint8_t fifo_pop(void) {
-    uint8_t data = 0;
-    if (!fifo_is_empty()) {
-        data = uart_rx_fifo[fifo_tail];
-        fifo_tail = (fifo_tail + 1) % UART_RX_FIFO_SIZE;
-    }
-    return data;
-}
-
 // ---------------------- Variables globales locales -----------------------
 static uint16_t cursorX = 0;
 static uint16_t cursorY = 0;
@@ -64,38 +39,21 @@ void Affichage_Init(void)
     cursorY = 0;
 }
 
-// -------------------------------------------------------------
-// Routine d’interruption UART (à appeler depuis ISR)
-// -------------------------------------------------------------
-void Affichage_UART_IRQHandler(void)
-{
-    if (USART2->SR & USART_SR_RXNE) { // exemple : USART2
-        uint8_t c = USART2->DR;
-        fifo_push(c);
-    }
-}
-
-// -------------------------------------------------------------
-// Boucle d’affichage principale (à appeler périodiquement)
-// -------------------------------------------------------------
 void Affichage_Update(void)
 {
     static char cmdBuffer[16];
     static uint8_t cmdIndex = 0;
     static uint8_t inCmd = 0;
 
-    while (!fifo_is_empty()) {
-        uint8_t c = fifo_pop();
-
+    uint8_t c;
+    while (UART5_getc_nonblocking(&c)) {   // <-- LIRE dans la FIFO UART5
         if (c == '\n') {
             Affichage_NewLine();
-        }
-        else if (c == '\r') {
+        } else if (c == '\r') {
             cursorX = 0;
-        }
-        else {
+        } else {
             if (!inCmd) {
-                if (c == 'S' || c == 'B') {
+                if (c == 'S' || c == 'B' || c == 's' || c == 'b') {  // accepte SC/BC en min/maj
                     inCmd = 1;
                     cmdIndex = 0;
                     cmdBuffer[cmdIndex++] = c;
@@ -103,7 +61,7 @@ void Affichage_Update(void)
                     Affichage_Caractere(c);
                 }
             } else {
-                cmdBuffer[cmdIndex++] = c;
+                if (cmdIndex < 8) cmdBuffer[cmdIndex++] = c; // "SC" + 6 hex = 8 chars
                 if (cmdIndex >= 8) {
                     cmdBuffer[cmdIndex] = '\0';
                     Affichage_ParseCommande(cmdBuffer);
