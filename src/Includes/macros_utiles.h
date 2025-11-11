@@ -41,4 +41,9 @@
 #define BIT30                  (0x40000000)
 #define BIT31                  (0x80000000)
 
+#include <stdint.h>
+
+
+uint32_t convertPinToBit(int pin);
+
 #endif /* MACROS_UTILES_H_ */

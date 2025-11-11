@@ -35,6 +35,11 @@ SOFTWARE.
 #include "Includes/adc.h"
 #include "Includes/pwm.h"
 #include "Includes/controleurled.h"
+#include "Includes/lcd_driver.h"
+#include "Includes/spi.h"
+#include "Includes/uart.h"
+#include "Includes/affichage.h"
+
 
 
 /* Private macro */
@@ -50,65 +55,133 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P3
+#define P1
+#define RGB565_RED   0xF800
+#define RGB565_GRN   0x07E0
+#define RGB565_BLU   0x001F
 
 int main(void)
 {
+	//MAIN DU LABO 3
 	#ifdef P1
+    SystemInit();
+	SystemCoreClockUpdate();
+	InitSysTick_1ms(SystemCoreClock);
 
-		GPIO_initPin(GPIOC,3,GPIO_ANALOG);
-		ADC_init(ADC1);
-		SystemCoreClockUpdate();
-		InitSysTick_1ms(SystemCoreClock);
-		timer_t t2hz;
-		timer_start(&t2hz);
+    UART5_init(18000000, 115200);
 
-		GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
-		uint8_t state = 0;
+    const char *msg = "Hello World!\r\n";
+    uint8_t c;
 
-		while (1) {
-			ADC_startConversion(ADC1);
-			delay_ms_blocking(100);
-			if (ADC_isReady()) {
-				uint16_t val = ADC_readValue();
-				state ^= 1;
-				GPIO_writePin(GPIOG,13, state);
-		        }
-		    }
+    while (1) {
+        UART5_sendString(msg);
+       	delay_ms_blocking(1000);
+
+        while (UART5_getc_nonblocking(&c)) {
+            UART5_putc(c);
+        }
+    }
 	#endif
 
 	#ifdef P2
-		SystemCoreClockUpdate();
-		uint32_t clock = SystemCoreClock/2; //Clock pour APB1 selectionner
-		// PWM_Init(clock, 100, 25);
-		// PWM_Init(clock, 400, 63);
-		PWM_Init(clock, 1000, 88);
-		while(1){}
-	#endif
+	SystemCoreClockUpdate();
+	InitSysTick_1ms(SystemCoreClock);
+	LCD_InitGPIO();
+	SPI_Init_ForLCD();
+	LCD_InitSerialInterface();
 
+	while (1) {
+		LCD_CopyColorToFrameBuffer(RGB565_RED);
+		LCD_TransmitFrameBuffer();
+		delay_ms_blocking(1000);
+
+		LCD_CopyColorToFrameBuffer(RGB565_GRN);
+		LCD_TransmitFrameBuffer();
+		delay_ms_blocking(1000);
+
+		LCD_CopyColorToFrameBuffer(RGB565_BLU);
+		LCD_TransmitFrameBuffer();
+		delay_ms_blocking(1000);
+	}
+	#endif
 
 	#ifdef P3
-		controleurled_init(GPIOA,0,GPIOC,3,ADC1);
-		SystemCoreClockUpdate();
-		InitSysTick_1ms(SystemCoreClock);
+	SystemInit();
+	SystemCoreClockUpdate();
+	InitSysTick_1ms(SystemCoreClock);
 
-		timer_t t;
-		timer_start(&t);
+	UART5_init(18000000, 115200);
 
-		while (1) {
-			if (controleurled_buttonPressed(GPIOA,0)) {
-				if (timer_expired(&t, 20)) {
-					timer_start(&t);
-					controleurled_turnOnOffLed(ON, ADC1);
-				}
-			} else {
-				if (timer_expired(&t, 20)) {
-					timer_start(&t);
-					controleurled_turnOnOffLed(OFF, ADC1);
-				}
-			}
-		}
+	Affichage_Init();
+
+	while (1)
+	{
+		Affichage_Update();
+	}
+	
+
+	
+
 	#endif
+
+
+
+	//MAIN DU LABO 2
+	// #ifdef P1
+
+	// 	GPIO_initPin(GPIOC,3,GPIO_ANALOG);
+	// 	ADC_init(ADC1);
+	// 	SystemCoreClockUpdate();
+	// 	InitSysTick_1ms(SystemCoreClock);
+	// 	timer_t t2hz;
+	// 	timer_start(&t2hz);
+
+	// 	GPIO_initPin(GPIOG,13,GPIO_OUTPUT);
+	// 	uint8_t state = 0;
+
+	// 	while (1) {
+	// 		ADC_startConversion(ADC1);
+	// 		delay_ms_blocking(100);
+	// 		if (ADC_isReady()) {
+	// 			uint16_t val = ADC_readValue();
+	// 			state ^= 1;
+	// 			GPIO_writePin(GPIOG,13, state);
+	// 	        }
+	// 	    }
+	// #endif
+
+	// #ifdef P2
+	// 	SystemCoreClockUpdate();
+	// 	uint32_t clock = SystemCoreClock/2; //Clock pour APB1 selectionner
+	// 	// PWM_Init(clock, 100, 25);
+	// 	// PWM_Init(clock, 400, 63);
+	// 	PWM_Init(clock, 1000, 88);
+	// 	while(1){}
+	// #endif
+
+
+	// #ifdef P3
+	// 	controleurled_init(GPIOA,0,GPIOC,3,ADC1);
+	// 	SystemCoreClockUpdate();
+	// 	InitSysTick_1ms(SystemCoreClock);
+
+	// 	timer_t t;
+	// 	timer_start(&t);
+
+	// 	while (1) {
+	// 		if (controleurled_buttonPressed(GPIOA,0)) {
+	// 			if (timer_expired(&t, 20)) {
+	// 				timer_start(&t);
+	// 				controleurled_turnOnOffLed(ON, ADC1);
+	// 			}
+	// 		} else {
+	// 			if (timer_expired(&t, 20)) {
+	// 				timer_start(&t);
+	// 				controleurled_turnOnOffLed(OFF, ADC1);
+	// 			}
+	// 		}
+	// 	}
+	// #endif
 
 	//MAIN DU LABO 1
 	// #ifdef P1
