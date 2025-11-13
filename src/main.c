@@ -39,6 +39,9 @@ SOFTWARE.
 #include "Includes/spi.h"
 #include "Includes/uart.h"
 #include "Includes/affichage.h"
+#include "Includes/sdram.h"
+#include <string.h>
+
 
 
 
@@ -59,70 +62,159 @@ SOFTWARE.
 #define RGB565_RED   0xF800
 #define RGB565_GRN   0x07E0
 #define RGB565_BLU   0x001F
+#define RGB565_BLK  0x0000
+
+static void LCD_DrawString16(const char* s, uint16_t bg, uint16_t fg,
+                             uint16_t x, uint16_t y)
+{
+    uint16_t cx = x;
+    while (*s) {
+        LCD_WriteChar((uint8_t)*s, bg, fg, cx, y);
+        cx += CHAR_WIDTH_16;
+        s++;
+    }
+}
+
 
 int main(void)
-{
-	//MAIN DU LABO 3
+{	
+
+	//MAIN DU LABO 4
 	#ifdef P1
-    SystemInit();
-	SystemCoreClockUpdate();
-	InitSysTick_1ms(SystemCoreClock);
 
-    UART5_init(18000000, 115200);
+	SystemInit();
+    SystemCoreClockUpdate();          
+    InitSysTick_1ms(SystemCoreClock);
 
-    const char *msg = "Hello World!\r\n";
-    uint8_t c;
+    SDRAM_Init();
+    SDRAM_BindFrameBuffer(SDRAM_BANK2_BASE);
 
-    while (1) {
-        UART5_sendString(msg);
-       	delay_ms_blocking(1000);
+	
 
-        while (UART5_getc_nonblocking(&c)) {
-            UART5_putc(c);
-        }
-    }
-	#endif
 
-	#ifdef P2
-	SystemCoreClockUpdate();
-	InitSysTick_1ms(SystemCoreClock);
 	LCD_InitGPIO();
-	SPI_Init_ForLCD();
+    SPI_Init_ForLCD();
+
+
 	LCD_InitSerialInterface();
 
-	while (1) {
-		LCD_CopyColorToFrameBuffer(RGB565_RED);
-		LCD_TransmitFrameBuffer();
-		delay_ms_blocking(1000);
+	LCD_CopyColorToFrameBuffer(RGB565_RED);
+    LCD_TransmitFrameBuffer();
 
-		LCD_CopyColorToFrameBuffer(RGB565_GRN);
-		LCD_TransmitFrameBuffer();
-		delay_ms_blocking(1000);
+	delay_ms_blocking(1000);
 
-		LCD_CopyColorToFrameBuffer(RGB565_BLU);
-		LCD_TransmitFrameBuffer();
-		delay_ms_blocking(1000);
+	LCD_CopyColorToFrameBuffer(RGB565_GRN);
+    LCD_TransmitFrameBuffer();
+
+	delay_ms_blocking(1000);
+
+	LCD_CopyColorToFrameBuffer(RGB565_BLK);
+    LCD_TransmitFrameBuffer();
+
+	delay_ms_blocking(1000);
+
+	const char *msg = "SMIA2024 PO";
+	const uint32_t str_addr = SDRAM_BANK2_BASE + LCD_BUF_LEN_BYTES;
+
+	
+	uint32_t adr = str_addr;
+	for (size_t i = 0; ; ) {
+		uint8_t c0 = (uint8_t)msg[i];
+		uint8_t c1 = (msg[i] ? (uint8_t)msg[i+1] : 0);  // remplit avec 0 si c0 = \0
+		uint16_t hw = ((uint16_t)c0 << 8) | (uint16_t)c1; //c0 MSB et c1 LSB
+		SDRAM_Write16(adr, hw);
+		adr += 2; // avance adresse de 2 octets
+
+		if (!c0) break; 
+		i += (c1 ? 2 : 1);
 	}
+    
+
+    
+    char readback[32] = {0};
+	uint32_t adr2 = str_addr;
+	size_t wr = 0;
+	while (wr + 1 < sizeof(readback)) {
+		uint16_t hw = SDRAM_Read16(adr2);
+		char c0 = (char)(hw >> 8);
+		char c1 = (char)(hw & 0xFF);
+		readback[wr++] = c0;
+		if (c0 == '\0') break;
+		if (wr + 1 < sizeof(readback)) {
+			readback[wr++] = c1;
+			if (c1 == '\0') break;
+		}
+		adr2 += 2;
+	}
+
+	LCD_DrawString16(readback, RGB565_BLK, 0xFFFF /*white*/, 12, 12);
+    
+	while (1) {}
 	#endif
 
-	#ifdef P3
-	SystemInit();
-	SystemCoreClockUpdate();
-	InitSysTick_1ms(SystemCoreClock);
 
-	UART5_init(18000000, 115200);
 
-	Affichage_Init();
+	// //MAIN DU LABO 3
+	// #ifdef P1
+    // SystemInit();
+	// SystemCoreClockUpdate();
+	// InitSysTick_1ms(SystemCoreClock);
 
-	while (1)
-	{
-		Affichage_Update();
-	}
+    // UART5_init(18000000, 115200);
+
+    // const char *msg = "Hello World!\r\n";
+    // uint8_t c;
+
+    // while (1) {
+    //     UART5_sendString(msg);
+    //    	delay_ms_blocking(1000);
+
+    //     while (UART5_getc_nonblocking(&c)) {
+    //         UART5_putc(c);
+    //     }
+    // }
+	// #endif
+
+	// #ifdef P2
+	// SystemCoreClockUpdate();
+	// InitSysTick_1ms(SystemCoreClock);
+	// LCD_InitGPIO();
+	// SPI_Init_ForLCD();
+	// LCD_InitSerialInterface();
+
+	// while (1) {
+	// 	LCD_CopyColorToFrameBuffer(RGB565_RED);
+	// 	LCD_TransmitFrameBuffer();
+	// 	delay_ms_blocking(1000);
+
+	// 	LCD_CopyColorToFrameBuffer(RGB565_GRN);
+	// 	LCD_TransmitFrameBuffer();
+	// 	delay_ms_blocking(1000);
+
+	// 	LCD_CopyColorToFrameBuffer(RGB565_BLU);
+	// 	LCD_TransmitFrameBuffer();
+	// 	delay_ms_blocking(1000);
+	// }
+	// #endif
+
+	// #ifdef P3
+	// SystemInit();
+	// SystemCoreClockUpdate();
+	// InitSysTick_1ms(SystemCoreClock);
+
+	// UART5_init(18000000, 115200);
+
+	// Affichage_Init();
+
+	// while (1)
+	// {
+	// 	Affichage_Update();
+	// }
 	
 
 	
 
-	#endif
+	//  #endif
 
 
 

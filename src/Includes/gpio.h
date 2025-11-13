@@ -1,4 +1,6 @@
 #include "stm32f4xx.h"
+#include <stdbool.h>
+
 
 // Enum pour modes pins
 typedef enum {
@@ -28,3 +30,5 @@ void GPIO_configAF(GPIO_TypeDef* port, uint8_t pin, uint8_t af_num,
 
 void GPIO_configOutput(GPIO_TypeDef* port, uint8_t pin,
                        GPIO_OType_t otype, GPIO_Speed_t speed, GPIO_Pupd_t pupd);
+
+bool GPIO_checkAF(GPIO_TypeDef* port, uint8_t pin, uint8_t af_num, GPIO_OType_t otype, GPIO_Speed_t speed, GPIO_Pupd_t pupd);
