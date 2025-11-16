@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+extern volatile int UART_DelayX;
+
 void UART5_init(uint32_t apb1_clk_hz, uint32_t baud);
 void UART5_putc(uint8_t c);
 void UART5_sendString(const char *s);
