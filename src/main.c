@@ -152,6 +152,18 @@ int main(void)
 	while (1) {}
 	#endif
 
+	#ifdef P2
+	GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_NO_PUPD);
+	UART_DelayX = 5000;   // Temps d'attente boucle interruption UART
+	//#define UART_DIRECT_LCD // Partie 2.2
+
+	static uint32_t last = 0;
+	if (HAL_GetTick() - last >= 1000) {
+		UART5_SendString("Hello World!\r\n");
+		last = HAL_GetTick();
+	}
+
+	#endif
 
 
 	// //MAIN DU LABO 3
