@@ -5,6 +5,7 @@
 
 #define UART5_RX_BUF_SIZE 128
 
+volatile int UART_DelayX = 0;
 static volatile uint8_t rx_buf[UART5_RX_BUF_SIZE];
 static volatile uint16_t rx_head = 0;
 static volatile uint16_t rx_tail = 0;
@@ -98,6 +99,14 @@ int UART5_getc_nonblocking(uint8_t *c)
 
 void UART5_IRQHandler(void)
 {
+
+    // Toggle PG13 au début de l'ISR pour labo 4 partie 2.1
+    static bool led_state = false;
+    GPIO_writePin(GPIOG, 13, led_state);
+    led_state = !led_state;
+    // Boucle d’attente artificielle labo4 partie 2.1
+    for (volatile int i = 0; i < UART_DelayX; i++);
+
     uint32_t sr = UART5->SR;              //lire SR
 
     if (sr & (USART_SR_PE | USART_SR_FE | USART_SR_NE | USART_SR_ORE)) {
@@ -106,8 +115,15 @@ void UART5_IRQHandler(void)
         return;                               // on ignore l’octet en erreur
     }
 
-    if (sr & USART_SR_RXNE) {
+    #ifdef UART_DIRECT_LCD
+    // Labo4 partie 2.2
+    uint8_t c = UART5->DR;
+    LCD_WriteChar(c);      // Pas de FIFO
+    #else
+        if (sr & USART_SR_RXNE) {
         uint8_t b = (uint8_t)UART5->DR;      // parité retirée automatiquement
         rx_push(b);
     }
+    #endif
+
 }
