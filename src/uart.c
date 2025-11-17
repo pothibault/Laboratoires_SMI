@@ -83,8 +83,9 @@ void UART5_init(uint32_t pclk1, uint32_t baudrate)
 
 void UART5_putc(uint8_t c)
 {
-    while (!(UART5->SR & USART_SR_TXE));
-    UART5->DR = c;
+	if (UART5->SR & USART_SR_TXE)
+	    UART5->DR = c;
+
 }
 
 void UART5_sendString(const char *s)
