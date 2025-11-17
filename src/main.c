@@ -162,14 +162,13 @@ int main(void)
 	Affichage_Init();
 
 	GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_NONE);
-	UART_DelayX = 10000;   // Temps d'attente boucle interruption UART
-	//#define UART_DIRECT_LCD // Partie 2.2
+	UART_DelayX = 374;   // Temps d'attente boucle interruption UART
 
 	timer_t t_uart;
 	timer_start(&t_uart);   // comme dans le labo 1
 
 	while (1) {
-		if (timer_expired(&t_uart, 100)) {  // toutes les 1000 ms (1 s)
+		if (timer_expired(&t_uart, 1000)) {  // toutes les 1000 ms (1 s)
 			UART5_sendString("Hello World!\r\n");
 			timer_start(&t_uart);            // on redémarre le timer
 		}

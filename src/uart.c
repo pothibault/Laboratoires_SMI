@@ -2,8 +2,15 @@
 #include "Includes/macros_utiles.h"
 #include "stm32f4xx.h"
 #include "Includes/uart.h"
+#include "Includes/lcd_driver.h"
 
 #define UART5_RX_BUF_SIZE 128
+#define UART_DIRECT_LCD // Partie 2.2
+
+static uint16_t cursorX = 0;
+static uint16_t cursorY = 0;
+static uint16_t textColor = COLOR_TEXT_DEFAULT;
+static uint16_t bgColor   = COLOR_BG_DEFAULT;
 
 volatile int UART_DelayX = 0;
 static volatile uint8_t rx_buf[UART5_RX_BUF_SIZE];
@@ -133,9 +140,7 @@ int UART5_getc_nonblocking(uint8_t *c)
 void UART5_IRQHandler(void)
 {
     // Toggle LED + délai si tu veux garder ça
-    static bool led_state = false;
     GPIO_writePin(GPIOG, 13, true);
-    led_state = !led_state;
     for (volatile int i = 0; i < UART_DelayX; i++);
 
     uint32_t sr = UART5->SR;
@@ -152,7 +157,10 @@ void UART5_IRQHandler(void)
         rx_push(dr);
     }
 #else
-    LCD_WriteChar(dr);
+    GPIO_writePin(GPIOG, 13, true);
+    LCD_WriteChar(dr, bgColor, textColor, cursorX, cursorY);
+    GPIO_writePin(GPIOG, 13, false);
 #endif
-GPIO_writePin(GPIOG, 13, false);
+    GPIO_writePin(GPIOG, 13, false);
+
 }
