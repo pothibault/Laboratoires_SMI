@@ -55,7 +55,7 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P1
+#define P3
 #define RGB565_RED   0xF800
 #define RGB565_GRN   0x07E0
 #define RGB565_BLU   0x001F
