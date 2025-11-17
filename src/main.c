@@ -159,6 +159,7 @@ int main(void)
 	SystemCoreClockUpdate();
 	InitSysTick_1ms(SystemCoreClock);      // initialise ton SysTick + compteur_ms
 	UART5_init(18000000, 115200);
+	Affichage_Init();
 
 	GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_NONE);
 	UART_DelayX = 10;   // Temps d'attente boucle interruption UART
@@ -166,14 +167,14 @@ int main(void)
 
 	timer_t t_uart;
 	timer_start(&t_uart);   // comme dans le labo 1
-	Affichage_Init();
 
 	while (1) {
 		if (timer_expired(&t_uart, 1000)) {  // toutes les 1000 ms (1 s)
 			UART5_sendString("Hello World!\r\n");
-			Affichage_Update();
 			timer_start(&t_uart);            // on redémarre le timer
 		}
+
+		Affichage_Update();
 
 		// ici tu peux ajouter d'autres traitements non bloquants
 	}

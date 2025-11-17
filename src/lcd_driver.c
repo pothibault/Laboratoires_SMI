@@ -205,7 +205,7 @@ void LCD_CopyColorToFrameBuffer(uint16_t color)
 // Fonction pour envoyer le frame buffer par SPI
 void LCD_TransmitFrameBuffer(void)
 {
-	LCD_SetAddress(0, 0, ILI9341_LCD_PIXEL_WIDTH - 1, ILI9341_LCD_PIXEL_HEIGHT -1);
+	LCD_SetAddress(0, 0, ILI9341_LCD_PIXEL_WIDTH, ILI9341_LCD_PIXEL_HEIGHT);
 	LCD_WRX_HIGH();
 	LCD_CS_LOW();
 	SPI_Transmit(frame_buffer_bytes, ILI9341_LCD_PIXEL_TOTAL_BYTES);
