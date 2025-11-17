@@ -58,11 +58,12 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P2
+#define P3
 #define RGB565_RED   0xF800
 #define RGB565_GRN   0x07E0
 #define RGB565_BLU   0x001F
 #define RGB565_BLK  0x0000
+//#define UART_DIRECT_LCD
 
 static void LCD_DrawString16(const char* s, uint16_t bg, uint16_t fg,
                              uint16_t x, uint16_t y)
@@ -157,23 +158,20 @@ int main(void)
 	SystemInit();
 	SystemCoreClockUpdate();
 	InitSysTick_1ms(SystemCoreClock);      // initialise ton SysTick + compteur_ms
-	SDRAM_Init();
-	SDRAM_BindFrameBuffer(SDRAM_BANK2_BASE);
-	LCD_InitGPIO();
-	SPI_Init_ForLCD();
-	LCD_InitSerialInterface();
 	UART5_init(18000000, 115200);
 
 	GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_NONE);
-	UART_DelayX = 5000;   // Temps d'attente boucle interruption UART
+	UART_DelayX = 10;   // Temps d'attente boucle interruption UART
 	//#define UART_DIRECT_LCD // Partie 2.2
 
 	timer_t t_uart;
 	timer_start(&t_uart);   // comme dans le labo 1
+	Affichage_Init();
 
 	while (1) {
 		if (timer_expired(&t_uart, 1000)) {  // toutes les 1000 ms (1 s)
-			UART5_SendString("Hello World!\r\n");
+			UART5_sendString("Hello World!\r\n");
+			Affichage_Update();
 			timer_start(&t_uart);            // on redémarre le timer
 		}
 
@@ -181,6 +179,21 @@ int main(void)
 	}
 
 	#endif
+
+#ifdef P3
+	SystemInit();
+	SystemCoreClockUpdate();
+	InitSysTick_1ms(SystemCoreClock);
+
+	UART5_init(18000000, 115200);
+
+	 Affichage_Init();
+
+	while (1)
+	{
+	Affichage_Update();
+	}
+#endif
 
 
 	// //MAIN DU LABO 3
