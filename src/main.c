@@ -58,7 +58,7 @@ SOFTWARE.
 **===========================================================================
 */
 
-#define P1
+#define P2
 #define RGB565_RED   0xF800
 #define RGB565_GRN   0x07E0
 #define RGB565_BLU   0x001F
@@ -153,7 +153,17 @@ int main(void)
 	#endif
 
 	#ifdef P2
-	GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_NO_PUPD);
+
+	SystemInit();
+    SystemCoreClockUpdate();
+    InitSysTick_1ms(SystemCoreClock);
+    SDRAM_Init();
+    SDRAM_BindFrameBuffer(SDRAM_BANK2_BASE);
+	LCD_InitGPIO();
+    SPI_Init_ForLCD();
+	LCD_InitSerialInterface();
+
+	GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_NONE);
 	UART_DelayX = 5000;   // Temps d'attente boucle interruption UART
 	//#define UART_DIRECT_LCD // Partie 2.2
 
