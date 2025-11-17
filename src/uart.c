@@ -83,9 +83,10 @@ void UART5_init(uint32_t pclk1, uint32_t baudrate)
 
 void UART5_putc(uint8_t c)
 {
-	if (UART5->SR & USART_SR_TXE)
-	    UART5->DR = c;
-
+    while (!(UART5->SR & USART_SR_TXE)) {
+        // attente que le registre soit prêt
+    }
+    UART5->DR = c;
 }
 
 void UART5_sendString(const char *s)
@@ -98,33 +99,60 @@ int UART5_getc_nonblocking(uint8_t *c)
     return rx_pop(c);
 }
 
+// void UART5_IRQHandler(void)
+// {
+
+//     // Toggle PG13 au début de l'ISR pour labo 4 partie 2.1
+//     static bool led_state = false;
+//     GPIO_writePin(GPIOG, 13, led_state);
+//     led_state = !led_state;
+//     // Boucle d’attente artificielle labo4 partie 2.1
+//     for (volatile int i = 0; i < UART_DelayX; i++);
+
+//     uint32_t sr = UART5->SR;              //lire SR
+
+//     if (sr & (USART_SR_PE | USART_SR_FE | USART_SR_NE | USART_SR_ORE)) {
+//         volatile uint8_t dummy = UART5->DR;  //lire DR pour clear les flags
+//         (void)dummy;
+//         return;                               // on ignore l’octet en erreur
+//     }
+
+//     #ifdef UART_DIRECT_LCD
+//     // Labo4 partie 2.2
+//     uint8_t c = UART5->DR;
+//     LCD_WriteChar(c);      // Pas de FIFO
+//     #else
+//         if (sr & USART_SR_RXNE) {
+//         uint8_t b = (uint8_t)UART5->DR;      // parité retirée automatiquement
+//         rx_push(b);
+//     }
+//     #endif
+
+// }
+
 void UART5_IRQHandler(void)
 {
-
-    // Toggle PG13 au début de l'ISR pour labo 4 partie 2.1
+    // Toggle LED + délai si tu veux garder ça
     static bool led_state = false;
-    GPIO_writePin(GPIOG, 13, led_state);
+    GPIO_writePin(GPIOG, 13, true);
     led_state = !led_state;
-    // Boucle d’attente artificielle labo4 partie 2.1
     for (volatile int i = 0; i < UART_DelayX; i++);
 
-    uint32_t sr = UART5->SR;              //lire SR
+    uint32_t sr = UART5->SR;
+    uint8_t  dr = (uint8_t)UART5->DR;  // lire DR une seule fois
 
+    // Si erreur, on la note mais on ne jette pas forcément l'octet
     if (sr & (USART_SR_PE | USART_SR_FE | USART_SR_NE | USART_SR_ORE)) {
-        volatile uint8_t dummy = UART5->DR;  //lire DR pour clear les flags
-        (void)dummy;
-        return;                               // on ignore l’octet en erreur
+        // TODO: éventuellement incrémenter un compteur d’erreur pour debug
+        // mais on CONTINUE quand même
     }
 
-    #ifdef UART_DIRECT_LCD
-    // Labo4 partie 2.2
-    uint8_t c = UART5->DR;
-    LCD_WriteChar(c);      // Pas de FIFO
-    #else
-        if (sr & USART_SR_RXNE) {
-        uint8_t b = (uint8_t)UART5->DR;      // parité retirée automatiquement
-        rx_push(b);
+#ifndef UART_DIRECT_LCD
+    if (sr & USART_SR_RXNE) {
+        rx_push(dr);
     }
-    #endif
-
+#else
+    LCD_WriteChar(dr);
+#endif
+GPIO_writePin(GPIOG, 13, false);
 }
