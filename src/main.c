@@ -155,22 +155,29 @@ int main(void)
 	#ifdef P2
 
 	SystemInit();
-    SystemCoreClockUpdate();
-    InitSysTick_1ms(SystemCoreClock);
-    SDRAM_Init();
-    SDRAM_BindFrameBuffer(SDRAM_BANK2_BASE);
+	SystemCoreClockUpdate();
+	InitSysTick_1ms(SystemCoreClock);      // initialise ton SysTick + compteur_ms
+	SDRAM_Init();
+	SDRAM_BindFrameBuffer(SDRAM_BANK2_BASE);
 	LCD_InitGPIO();
-    SPI_Init_ForLCD();
+	SPI_Init_ForLCD();
 	LCD_InitSerialInterface();
+	UART5_init(18000000, 115200);
 
 	GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_NONE);
 	UART_DelayX = 5000;   // Temps d'attente boucle interruption UART
 	//#define UART_DIRECT_LCD // Partie 2.2
 
-	static uint32_t last = 0;
-	if (HAL_GetTick() - last >= 1000) {
-		UART5_SendString("Hello World!\r\n");
-		last = HAL_GetTick();
+	timer_t t_uart;
+	timer_start(&t_uart);   // comme dans le labo 1
+
+	while (1) {
+		if (timer_expired(&t_uart, 1000)) {  // toutes les 1000 ms (1 s)
+			UART5_SendString("Hello World!\r\n");
+			timer_start(&t_uart);            // on redémarre le timer
+		}
+
+		// ici tu peux ajouter d'autres traitements non bloquants
 	}
 
 	#endif
