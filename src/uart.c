@@ -5,7 +5,7 @@
 #include "Includes/lcd_driver.h"
 
 #define UART5_RX_BUF_SIZE 128
-#define UART_DIRECT_LCD // Partie 2.2
+//#define UART_DIRECT_LCD // Partie 2.2
 #define LCD_WIDTH   240
 #define LCD_HEIGHT  320
 
@@ -109,6 +109,36 @@ int UART5_getc_nonblocking(uint8_t *c)
 }
 
 
+
+
+#ifdef UART_DIRECT_LCD
+void UART5_IRQHandler(void)
+{
+    // GPIO_writePin(GPIOG, 13, true);      
+    for (volatile int i = 0; i < UART_DelayX; i++);
+
+    uint32_t sr = UART5->SR;
+    uint8_t  dr = (uint8_t)UART5->DR;   
+
+    // On ne traite que si un caractère est effectivement reçu
+    if (sr & USART_SR_RXNE) {
+        // Affichage direct sur le LCD (partie 2.2)
+        GPIO_writePin(GPIOG, 13, true);
+        LCD_WriteChar(dr, bgColor, textColor, cursorX, cursorY);
+        GPIO_writePin(GPIOG, 13, false); 
+        cursorX += CHAR_WIDTH_16;
+        if (cursorX + CHAR_WIDTH_16 >= LCD_WIDTH) {
+            cursorX = 0;
+            cursorY += CHAR_HEIGHT_16;
+            if (cursorY + CHAR_HEIGHT_16 >= LCD_HEIGHT) {
+                cursorY = 0;         
+            }
+        }
+    
+    }
+
+}
+#else
 void UART5_IRQHandler(void)
 {
     GPIO_writePin(GPIOG, 13, true);      
@@ -119,22 +149,9 @@ void UART5_IRQHandler(void)
 
     // On ne traite que si un caractère est effectivement reçu
     if (sr & USART_SR_RXNE) {
-    #ifdef UART_DIRECT_LCD
-        // Affichage direct sur le LCD (partie 2.2)
-        LCD_WriteChar(dr, bgColor, textColor, cursorX, cursorY);
-
-        cursorX += CHAR_WIDTH_16;
-        if (cursorX + CHAR_WIDTH_16 >= LCD_WIDTH) {
-            cursorX = 0;
-            cursorY += CHAR_HEIGHT_16;
-            if (cursorY + CHAR_HEIGHT_16 >= LCD_HEIGHT) {
-                cursorY = 0;         
-            }
-        }
-    #else
-        rx_push(dr);
-    #endif
+         rx_push(dr);
     }
 
     GPIO_writePin(GPIOG, 13, false);   
 }
+#endif

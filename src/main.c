@@ -158,7 +158,7 @@ int main(void)
 	#endif
 
 
-	//!!!ATTENTION!!! pour faire fonctionner la partie 2.1 il faut commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
+	//!!!ATTENTION!!! pour faire fonctionner la partie 2.1 il faut commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20 et garder commenter le #define UART_DIRECT_LCD dans uart.c ligne 8
 	//!!!ATTENTION!!! pour faire fonctionner la partie 2.2 il faut décommenter le #define UART_DIRECT_LCD dans uart.c ligne 8 et commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
 	#ifdef P2
 
@@ -169,7 +169,7 @@ int main(void)
 	Affichage_Init();
 
 	GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_NONE);
-	UART_DelayX = 1750;
+	UART_DelayX = 0;
 
 	timer_t t_uart;
 	timer_start(&t_uart); 

@@ -17,7 +17,7 @@
 #define LCD_CSX_PIN    2
 #define LCD_WRX_PORT   GPIOD
 #define LCD_WRX_PIN    13
-// #define SDRAM_IN_USE
+#define SDRAM_IN_USE
 
 
 
