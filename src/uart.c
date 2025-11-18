@@ -6,6 +6,8 @@
 
 #define UART5_RX_BUF_SIZE 128
 #define UART_DIRECT_LCD // Partie 2.2
+#define LCD_WIDTH   240
+#define LCD_HEIGHT  320
 
 static uint16_t cursorX = 0;
 static uint16_t cursorY = 0;
@@ -106,61 +108,33 @@ int UART5_getc_nonblocking(uint8_t *c)
     return rx_pop(c);
 }
 
-// void UART5_IRQHandler(void)
-// {
-
-//     // Toggle PG13 au début de l'ISR pour labo 4 partie 2.1
-//     static bool led_state = false;
-//     GPIO_writePin(GPIOG, 13, led_state);
-//     led_state = !led_state;
-//     // Boucle d’attente artificielle labo4 partie 2.1
-//     for (volatile int i = 0; i < UART_DelayX; i++);
-
-//     uint32_t sr = UART5->SR;              //lire SR
-
-//     if (sr & (USART_SR_PE | USART_SR_FE | USART_SR_NE | USART_SR_ORE)) {
-//         volatile uint8_t dummy = UART5->DR;  //lire DR pour clear les flags
-//         (void)dummy;
-//         return;                               // on ignore l’octet en erreur
-//     }
-
-//     #ifdef UART_DIRECT_LCD
-//     // Labo4 partie 2.2
-//     uint8_t c = UART5->DR;
-//     LCD_WriteChar(c);      // Pas de FIFO
-//     #else
-//         if (sr & USART_SR_RXNE) {
-//         uint8_t b = (uint8_t)UART5->DR;      // parité retirée automatiquement
-//         rx_push(b);
-//     }
-//     #endif
-
-// }
 
 void UART5_IRQHandler(void)
 {
-    // Toggle LED + délai si tu veux garder ça
-    GPIO_writePin(GPIOG, 13, true);
+    GPIO_writePin(GPIOG, 13, true);      
     for (volatile int i = 0; i < UART_DelayX; i++);
 
     uint32_t sr = UART5->SR;
-    uint8_t  dr = (uint8_t)UART5->DR;  // lire DR une seule fois
+    uint8_t  dr = (uint8_t)UART5->DR;   
 
-    // Si erreur, on la note mais on ne jette pas forcément l'octet
-    if (sr & (USART_SR_PE | USART_SR_FE | USART_SR_NE | USART_SR_ORE)) {
-        // TODO: éventuellement incrémenter un compteur d’erreur pour debug
-        // mais on CONTINUE quand même
-    }
-
-#ifndef UART_DIRECT_LCD
+    // On ne traite que si un caractère est effectivement reçu
     if (sr & USART_SR_RXNE) {
-        rx_push(dr);
-    }
-#else
-    GPIO_writePin(GPIOG, 13, true);
-    LCD_WriteChar(dr, bgColor, textColor, cursorX, cursorY);
-    GPIO_writePin(GPIOG, 13, false);
-#endif
-    GPIO_writePin(GPIOG, 13, false);
+    #ifdef UART_DIRECT_LCD
+        // Affichage direct sur le LCD (partie 2.2)
+        LCD_WriteChar(dr, bgColor, textColor, cursorX, cursorY);
 
+        cursorX += CHAR_WIDTH_16;
+        if (cursorX + CHAR_WIDTH_16 >= LCD_WIDTH) {
+            cursorX = 0;
+            cursorY += CHAR_HEIGHT_16;
+            if (cursorY + CHAR_HEIGHT_16 >= LCD_HEIGHT) {
+                cursorY = 0;         
+            }
+        }
+    #else
+        rx_push(dr);
+    #endif
+    }
+
+    GPIO_writePin(GPIOG, 13, false);   
 }
