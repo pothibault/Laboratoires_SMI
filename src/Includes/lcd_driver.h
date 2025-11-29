@@ -20,9 +20,9 @@ void LCD_SetAddress (uint16_t X1, uint16_t Y1, uint16_t X2, uint16_t Y2);
 void LCD_WriteChar  (uint8_t character, uint16_t backGroundColor, uint16_t charColor, uint16_t cursorX, uint16_t cursorY);
 
 
-// TODO implémenter cette fonction et ne pas oublier de l'appeler avant l'init du LCD!
+// TODO implï¿½menter cette fonction et ne pas oublier de l'appeler avant l'init du LCD!
 void LCD_InitGPIO(void);
 
-
+void SDRAM_BindFrameBuffer(uint32_t fb_addr);
 
 #endif /* LCD_DRIVER_H_ */

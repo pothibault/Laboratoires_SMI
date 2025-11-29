@@ -75,9 +75,7 @@ void Affichage_Update(void)
                     cmd[idx] = '\0';
                     Affichage_ParseCommande(cmd);
                     state = 0; idx = 0;
-                } else {
-                    state = 3;
-                }
+                } 
             } else {
                 // invalide
                 state = 0; idx = 0;

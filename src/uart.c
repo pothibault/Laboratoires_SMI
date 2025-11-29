@@ -2,9 +2,19 @@
 #include "Includes/macros_utiles.h"
 #include "stm32f4xx.h"
 #include "Includes/uart.h"
+#include "Includes/lcd_driver.h"
 
 #define UART5_RX_BUF_SIZE 128
+//#define UART_DIRECT_LCD // Partie 2.2
+#define LCD_WIDTH   240
+#define LCD_HEIGHT  320
 
+static uint16_t cursorX = 0;
+static uint16_t cursorY = 0;
+static uint16_t textColor = COLOR_TEXT_DEFAULT;
+static uint16_t bgColor   = COLOR_BG_DEFAULT;
+
+volatile int UART_DelayX = 0;
 static volatile uint8_t rx_buf[UART5_RX_BUF_SIZE];
 static volatile uint16_t rx_head = 0;
 static volatile uint16_t rx_tail = 0;
@@ -82,7 +92,9 @@ void UART5_init(uint32_t pclk1, uint32_t baudrate)
 
 void UART5_putc(uint8_t c)
 {
-    while (!(UART5->SR & USART_SR_TXE));
+    while (!(UART5->SR & USART_SR_TXE)) {
+        // attente que le registre soit prêt
+    }
     UART5->DR = c;
 }
 
@@ -96,18 +108,50 @@ int UART5_getc_nonblocking(uint8_t *c)
     return rx_pop(c);
 }
 
+
+
+
+#ifdef UART_DIRECT_LCD
 void UART5_IRQHandler(void)
 {
-    uint32_t sr = UART5->SR;              //lire SR
+    // GPIO_writePin(GPIOG, 13, true);      
+    for (volatile int i = 0; i < UART_DelayX; i++);
 
-    if (sr & (USART_SR_PE | USART_SR_FE | USART_SR_NE | USART_SR_ORE)) {
-        volatile uint8_t dummy = UART5->DR;  //lire DR pour clear les flags
-        (void)dummy;
-        return;                               // on ignore l’octet en erreur
-    }
+    uint32_t sr = UART5->SR;
+    uint8_t  dr = (uint8_t)UART5->DR;   
 
+    // On ne traite que si un caractère est effectivement reçu
     if (sr & USART_SR_RXNE) {
-        uint8_t b = (uint8_t)UART5->DR;      // parité retirée automatiquement
-        rx_push(b);
+        // Affichage direct sur le LCD (partie 2.2)
+        GPIO_writePin(GPIOG, 13, true);
+        LCD_WriteChar(dr, bgColor, textColor, cursorX, cursorY);
+        GPIO_writePin(GPIOG, 13, false); 
+        cursorX += CHAR_WIDTH_16;
+        if (cursorX + CHAR_WIDTH_16 >= LCD_WIDTH) {
+            cursorX = 0;
+            cursorY += CHAR_HEIGHT_16;
+            if (cursorY + CHAR_HEIGHT_16 >= LCD_HEIGHT) {
+                cursorY = 0;         
+            }
+        }
+    
     }
+
 }
+#else
+void UART5_IRQHandler(void)
+{
+    GPIO_writePin(GPIOG, 13, true);      
+    for (volatile int i = 0; i < UART_DelayX; i++);
+
+    uint32_t sr = UART5->SR;
+    uint8_t  dr = (uint8_t)UART5->DR;   
+
+    // On ne traite que si un caractère est effectivement reçu
+    if (sr & USART_SR_RXNE) {
+         rx_push(dr);
+    }
+
+    GPIO_writePin(GPIOG, 13, false);   
+}
+#endif

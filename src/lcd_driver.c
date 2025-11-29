@@ -17,12 +17,20 @@
 #define LCD_CSX_PIN    2
 #define LCD_WRX_PORT   GPIOD
 #define LCD_WRX_PIN    13
+#define SDRAM_IN_USE
 
 
 
+
+
+#ifdef SDRAM_IN_USE
+static uint16_t *frame_buffer       = (uint16_t*)0;
+static uint8_t  *frame_buffer_bytes = (uint8_t *)0;
+#else
 // variables locales
 static uint16_t frame_buffer[LCD_BUF_LEN];
 static uint8_t *frame_buffer_bytes = (uint8_t *)frame_buffer;
+#endif
 static uint8_t char_buff[CHAR_WIDTH_16*CHAR_HEIGHT_16*2] = {0};
 
 
@@ -34,7 +42,13 @@ static void LCD_CS_LOW(void);
 static void LCD_WRX_HIGH(void);
 static void LCD_WRX_LOW(void);
 
-
+#ifdef SDRAM_IN_USE
+void SDRAM_BindFrameBuffer(uint32_t fb_addr)
+{
+    frame_buffer       = (uint16_t*)fb_addr;
+    frame_buffer_bytes = (uint8_t *)fb_addr;
+}
+#endif
 
 // initialisation de l'ecran
 // configuration de base + envoi des pixels par SPI
