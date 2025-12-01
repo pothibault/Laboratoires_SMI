@@ -40,6 +40,8 @@ SOFTWARE.
 #include "Includes/uart.h"
 #include "Includes/affichage.h"
 #include "Includes/sdram.h"
+#include "Includes/i2c.h"
+#include "Includes/am2320.h"
 #include <string.h>
 
 
@@ -59,132 +61,164 @@ SOFTWARE.
 */
 
 
-//!!!ATTENTION!!! pour faire fonctionner la partie 1 il faut décommenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
-//!!!ATTENTION!!! pour faire fonctionner la partie 2.1 il faut commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
-//!!!ATTENTION!!! pour faire fonctionner la partie 2.2 il faut décommenter le #define UART_DIRECT_LCD dans uart.c ligne 8 et commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
-#define P2
-#define RGB565_RED   0xF800
-#define RGB565_GRN   0x07E0
-#define RGB565_BLU   0x001F
-#define RGB565_BLK  0x0000
+// //!!!ATTENTION!!! pour faire fonctionner la partie 1 il faut décommenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
+// //!!!ATTENTION!!! pour faire fonctionner la partie 2.1 il faut commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
+// //!!!ATTENTION!!! pour faire fonctionner la partie 2.2 il faut décommenter le #define UART_DIRECT_LCD dans uart.c ligne 8 et commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
+// #define P2
+// #define RGB565_RED   0xF800
+// #define RGB565_GRN   0x07E0
+// #define RGB565_BLU   0x001F
+// #define RGB565_BLK  0x0000
 
-static void LCD_DrawString16(const char* s, uint16_t bg, uint16_t fg,
-                             uint16_t x, uint16_t y)
-{
-    uint16_t cx = x;
-    while (*s) {
-        LCD_WriteChar((uint8_t)*s, bg, fg, cx, y);
-        cx += CHAR_WIDTH_16;
-        s++;
-    }
-}
+// static void LCD_DrawString16(const char* s, uint16_t bg, uint16_t fg,
+//                              uint16_t x, uint16_t y)
+// {
+//     uint16_t cx = x;
+//     while (*s) {
+//         LCD_WriteChar((uint8_t)*s, bg, fg, cx, y);
+//         cx += CHAR_WIDTH_16;
+//         s++;
+//     }
+// }
 
 
 int main(void)
 {	
 
-	//MAIN DU LABO 4
-	//!!!ATTENTION!!! pour faire fonctionner la partie 1 il faut décommenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
-	#ifdef P1
 
+	//MAIN PROJET
 	SystemInit();
-    SystemCoreClockUpdate();          
+    SystemCoreClockUpdate();
     InitSysTick_1ms(SystemCoreClock);
 
-    SDRAM_Init();
-    SDRAM_BindFrameBuffer(SDRAM_BANK2_BASE);
+	uint32_t pclk1 = 36000000U; //72Mhz/2 pour APB1
 
-	
-
-
-	LCD_InitGPIO();
-    SPI_Init_ForLCD();
-
-
-	LCD_InitSerialInterface();
-
-	LCD_CopyColorToFrameBuffer(RGB565_RED);
-    LCD_TransmitFrameBuffer();
-
-	delay_ms_blocking(1000);
-
-	LCD_CopyColorToFrameBuffer(RGB565_GRN);
-    LCD_TransmitFrameBuffer();
-
-	delay_ms_blocking(1000);
-
-	LCD_CopyColorToFrameBuffer(RGB565_BLK);
-    LCD_TransmitFrameBuffer();
-
-	delay_ms_blocking(1000);
-
-	const char *msg = "SMIA2024 PO";
-	const uint32_t str_addr = SDRAM_BANK2_BASE + LCD_BUF_LEN_BYTES;
-
-	
-	uint32_t adr = str_addr;
-	for (size_t i = 0; ; ) {
-		uint8_t c0 = (uint8_t)msg[i];
-		uint8_t c1 = (msg[i] ? (uint8_t)msg[i+1] : 0);  // remplit avec 0 si c0 = \0
-		uint16_t hw = ((uint16_t)c0 << 8) | (uint16_t)c1; //c0 MSB et c1 LSB
-		SDRAM_Write16(adr, hw);
-		adr += 2; // avance adresse de 2 octets
-
-		if (!c0) break; 
-		i += (c1 ? 2 : 1);
-	}
-    
-
-    
-    char readback[32] = {0};
-	uint32_t adr2 = str_addr;
-	size_t wr = 0;
-	while (wr + 1 < sizeof(readback)) {
-		uint16_t hw = SDRAM_Read16(adr2);
-		char c0 = (char)(hw >> 8);
-		char c1 = (char)(hw & 0xFF);
-		readback[wr++] = c0;
-		if (c0 == '\0') break;
-		if (wr + 1 < sizeof(readback)) {
-			readback[wr++] = c1;
-			if (c1 == '\0') break;
-		}
-		adr2 += 2;
-	}
-
-	LCD_DrawString16(readback, RGB565_BLK, 0xFFFF /*white*/, 12, 12);
-    
-	while (1) {}
-	#endif
-
-
-	//!!!ATTENTION!!! pour faire fonctionner la partie 2.1 il faut commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20 et garder commenter le #define UART_DIRECT_LCD dans uart.c ligne 8
-	//!!!ATTENTION!!! pour faire fonctionner la partie 2.2 il faut décommenter le #define UART_DIRECT_LCD dans uart.c ligne 8 et commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
-	#ifdef P2
-
-	SystemInit();
-	SystemCoreClockUpdate();
-	InitSysTick_1ms(SystemCoreClock);   
-	UART5_init(18000000, 115200);
-	Affichage_Init();
-
-	GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_NONE);
-	UART_DelayX = 0;
-
-	timer_t t_uart;
-	timer_start(&t_uart); 
+	// Init I2C1 at 100 kHz
+    I2C1_init(pclk1, 100000U);
 
 	while (1) {
-		if (timer_expired(&t_uart, 1000)) {  
-			UART5_sendString("Hello World!\r\n");
-			timer_start(&t_uart);           
+		am2320_data_t data;
+
+		if (am2320_read(&data)) {
+
+			float humidity = data.humidity_rh;
+			float temperature = data.temperature_c;
+
+			delay_ms_blocking(3000);
 		}
-
-		Affichage_Update();
-
 	}
 
-	#endif
+
+
+
+
+
+
+
+
+
+	// //MAIN DU LABO 4
+	// //!!!ATTENTION!!! pour faire fonctionner la partie 1 il faut décommenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
+	// #ifdef P1
+
+	// SystemInit();
+    // SystemCoreClockUpdate();          
+    // InitSysTick_1ms(SystemCoreClock);
+
+    // SDRAM_Init();
+    // SDRAM_BindFrameBuffer(SDRAM_BANK2_BASE);
+
+	
+
+
+	// LCD_InitGPIO();
+    // SPI_Init_ForLCD();
+
+
+	// LCD_InitSerialInterface();
+
+	// LCD_CopyColorToFrameBuffer(RGB565_RED);
+    // LCD_TransmitFrameBuffer();
+
+	// delay_ms_blocking(1000);
+
+	// LCD_CopyColorToFrameBuffer(RGB565_GRN);
+    // LCD_TransmitFrameBuffer();
+
+	// delay_ms_blocking(1000);
+
+	// LCD_CopyColorToFrameBuffer(RGB565_BLK);
+    // LCD_TransmitFrameBuffer();
+
+	// delay_ms_blocking(1000);
+
+	// const char *msg = "SMIA2024 PO";
+	// const uint32_t str_addr = SDRAM_BANK2_BASE + LCD_BUF_LEN_BYTES;
+
+	
+	// uint32_t adr = str_addr;
+	// for (size_t i = 0; ; ) {
+	// 	uint8_t c0 = (uint8_t)msg[i];
+	// 	uint8_t c1 = (msg[i] ? (uint8_t)msg[i+1] : 0);  // remplit avec 0 si c0 = \0
+	// 	uint16_t hw = ((uint16_t)c0 << 8) | (uint16_t)c1; //c0 MSB et c1 LSB
+	// 	SDRAM_Write16(adr, hw);
+	// 	adr += 2; // avance adresse de 2 octets
+
+	// 	if (!c0) break; 
+	// 	i += (c1 ? 2 : 1);
+	// }
+    
+
+    
+    // char readback[32] = {0};
+	// uint32_t adr2 = str_addr;
+	// size_t wr = 0;
+	// while (wr + 1 < sizeof(readback)) {
+	// 	uint16_t hw = SDRAM_Read16(adr2);
+	// 	char c0 = (char)(hw >> 8);
+	// 	char c1 = (char)(hw & 0xFF);
+	// 	readback[wr++] = c0;
+	// 	if (c0 == '\0') break;
+	// 	if (wr + 1 < sizeof(readback)) {
+	// 		readback[wr++] = c1;
+	// 		if (c1 == '\0') break;
+	// 	}
+	// 	adr2 += 2;
+	// }
+
+	// LCD_DrawString16(readback, RGB565_BLK, 0xFFFF /*white*/, 12, 12);
+    
+	// while (1) {}
+	// #endif
+
+
+	// //!!!ATTENTION!!! pour faire fonctionner la partie 2.1 il faut commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20 et garder commenter le #define UART_DIRECT_LCD dans uart.c ligne 8
+	// //!!!ATTENTION!!! pour faire fonctionner la partie 2.2 il faut décommenter le #define UART_DIRECT_LCD dans uart.c ligne 8 et commenter le #define SDRAM_IN_USE dans le lcd_driver.c à la ligne 20
+	// #ifdef P2
+
+	// SystemInit();
+	// SystemCoreClockUpdate();
+	// InitSysTick_1ms(SystemCoreClock);   
+	// UART5_init(18000000, 115200);
+	// Affichage_Init();
+
+	// GPIO_configOutput(GPIOG, 13, GPIO_OT_PP, GPIO_SPEED_HIGH, GPIO_PUPD_NONE);
+	// UART_DelayX = 0;
+
+	// timer_t t_uart;
+	// timer_start(&t_uart); 
+
+	// while (1) {
+	// 	if (timer_expired(&t_uart, 1000)) {  
+	// 		UART5_sendString("Hello World!\r\n");
+	// 		timer_start(&t_uart);           
+	// 	}
+
+	// 	Affichage_Update();
+
+	// }
+
+	// #endif
 
 
 
