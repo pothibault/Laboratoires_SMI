@@ -117,7 +117,7 @@ void SDRAM_Init(void)
     FMC_Bank5_6->SDCR[1] = sdcr_common;  // Bank2
     FMC_WaitWhileBusy();
 
-    // 4. Timings : mêmes valeurs pour les deux banks
+    // Timings
     uint32_t sdtr0 =
         ((TRP -1u) << SDTR_TRP_Pos) |
         ((TRC -1u) << SDTR_TRC_Pos);
